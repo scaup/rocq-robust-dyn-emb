@@ -42,7 +42,8 @@ Section lemmas.
 
   Lemma wp_lam_app_rw Φ L ν' e w :
     ⊢ wp Φ L (App ν' (Lam e) (of_val w)) -∗ ▷ wp Φ L e.[of_val w/].
-  Proof. iIntros "H". iApply (wp_s_inv with "H"). step_solver. Qed.
+  Proof. iIntros "H". iApply (wp_s_inv with "H").
+         rw_fill_popped. step_solver. Qed.
 
   Lemma rfn_l_lam_app_rw ν Φ L e w e' :
     ⊢ rfn Φ L (App ν (Lam e) (of_val w)) e' -∗ ▷ rfn Φ L e.[of_val w/] e'.

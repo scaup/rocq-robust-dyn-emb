@@ -1,6 +1,5 @@
-From main Require Import imports.
-
-From main.dyn_lang Require Import definition.
+From main Require Import imports.  (* prelude.autosubst. *)
+From main.dyn_lang Require Import definition.  (* lib. *)
 From main.surf_lang Require Import types definition.
 
 (* The dynamic embedding, of the dynamic language into the gradual one. *)
@@ -11,7 +10,9 @@ Section dyn_emb.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  
+  Definition LetIn (e1 e2 : expr) : expr :=
+    App (Lam e2) e1.
+
   Fixpoint dyn_emb (e : dyn_lang.definition.expr) : surf_lang.definition.expr :=
     match e with
     | dyn_lang.definition.Lit b =>
@@ -26,9 +27,29 @@ Section dyn_emb.
            (dyn_emb e1)
            (dyn_emb e2)
     | dyn_lang.definition.BinOp ℓ binop e1 e2 =>
-        BinOp binop
-           (Assert ℓ Unknown (Base Int) (dyn_emb e1))
-           (Assert ℓ Unknown (Base Int) (dyn_emb e2))
+        LetIn (Pair (dyn_emb e1) (dyn_emb e2)) (
+          LetIn (Fst (Var 0)) (
+            LetIn (Snd (Var 1)) (
+                  BinOp binop
+                     (Assert ℓ Unknown (Base Int) (Var 1))
+                     (Assert ℓ Unknown (Base Int) (Var 0))
+
+               )
+             )
+           )
+          (* (LetIn (Fst (Var 0)) ) *)
+
+          (*  (BinOp binop (Assert ℓ Unknown (Base Int) (Fst $ Var 0)) *)
+          (*               (Assert ℓ Unknown (Base Int) (Snd $ Var 0))) *)
+        (* LetIn (dyn_emb e1) ( *)
+        (*   LetIn (dyn_emb e2).[ren (+1)] ( *)
+        (*     BinOp binop (Assert ℓ Unknown (Base Int) (Var 1)) *)
+        (*                 (Assert ℓ Unknown (Base Int) (Var 0)))) *)
+        (* this does not even satisfy simplests of props; *)
+        (* true + Ω diverges... *)
+        (* BinOp binop *)
+        (*    (Assert ℓ Unknown (Base Int) (dyn_emb e1)) *)
+        (*    (Assert ℓ Unknown (Base Int) (dyn_emb e2)) *)
     | dyn_lang.definition.Var v =>
         Var v
     | dyn_lang.definition.Lam e =>

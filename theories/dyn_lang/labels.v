@@ -7,8 +7,12 @@ Definition le_permissive : relation LabelRel :=
 
 Notation "L1 ≤ L2" := (le_permissive L1 L2).
 
-Lemma le_transitive_trans : Transitive le_permissive.
+Instance le_permissive_trans : Transitive le_permissive.
 Proof. intros R1 R2 R3 H12 H23 ℓ ℓ' Hℓℓ'. by apply H23, H12. Qed.
+
+Lemma le_permissive_trans' Δ1 Δ2 Δ3 :
+  le_permissive Δ2 Δ3 → le_permissive Δ1 Δ2 → le_permissive Δ1 Δ3.
+Proof. intros. by eapply transitivity. Qed.
 
 Definition PermitNone : LabelRel := fun _ _ => False.
 (* Notation "∅" := (PermitNone). *)
@@ -16,8 +20,12 @@ Definition PermitNone : LabelRel := fun _ _ => False.
 Definition PermitAll : LabelRel := fun _ _ => False.
 (* Notation "#" := (PermitAll). *)
 
-Definition UnaryConjunction (L : label → Prop) : LabelRel :=
+Definition unary_conj (L : label → Prop) : LabelRel :=
   fun ℓ ℓ' => L ℓ ∧ L ℓ'.
+
+Lemma le_perm_unary_conj L L' (H : ∀ ℓ, L ℓ → L' ℓ) :
+  le_permissive (unary_conj L) (unary_conj L').
+Proof. intros ℓ ℓ' H'. destruct H'. split; by eapply H. Qed.
 
 Fixpoint getLabels (e : expr) : listset label :=
     match e with
@@ -51,7 +59,7 @@ Fixpoint getLabels (e : expr) : listset label :=
 
 Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ getLabels e.
 
-Definition Δ (e : expr) : LabelRel :=
-  UnaryConjunction (occursIn e).
+Definition Lbls (e : expr) : LabelRel :=
+  unary_conj (occursIn e).
 
 (* Notation "Δ e" := (Diagonal e) (at level 0). *)

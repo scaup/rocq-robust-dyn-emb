@@ -31,6 +31,18 @@ Section wp.
   Lemma wp_val Φ L e v (H : e = of_val v) : Φ v ⊢ wp Φ L e.
   Proof. iIntros "HΦ". rewrite wp_unfold /wp_pre. by iExists (Is_Value _ _ H). Qed.
 
+  Lemma wp_val_inv Φ L v : wp Φ L (of_val v) ⊢ Φ v.
+  Proof.
+    iIntros "H". rewrite wp_unfold. iDestruct "H" as (C) "H".
+    destruct C.
+    - admit.
+    - admit.
+    - admit.
+  Admitted.
+
+  (* Lemma wp_val_inv Φ L e v (H : e = of_val v) : wp Φ L e ⊢ Φ v. *)
+  (* Proof. iIntros "H". assert (H' := of_to_val e v). rewrite to_of_val in H'. at 1.  (to_of_val ) iApply wp_val. eauto. iExists v2. iFrame. iPureIntro. rewrite H2. by apply rtc_refl. Qed. *)
+
   Lemma wp_faulty Φ L e ℓ (H : faulty e ℓ) : L ℓ ⊢ wp Φ L e.
   Proof. iIntros "HΦ". rewrite wp_unfold /wp_pre. by iExists (Is_Faulty _ _ H). Qed.
 

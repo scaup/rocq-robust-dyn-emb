@@ -9,23 +9,14 @@ Fixpoint big_sepL3 {PROP : bi} {A B C}
   | _, _,_ => False
   end%I.
 
-(* From iris Require Import bi.big_op. *)
-(* From stdpp Require Import countable fin_sets functions. *)
-(* From iris.algebra Require Export big_op. *)
-(* From iris.algebra Require Import list gmap. *)
-(* From iris.bi Require Import derived_laws_later. *)
-(* From iris.prelude Require Import options. *)
-(* Import interface.bi derived_laws.bi derived_laws_later.bi. *)
-
+From iris.si_logic Require Export bi.
 
 Section big_sepL3_alt.
 
-  Context `{Σ : !gFunctors}.
   Context {A B C : Type}.
 
-
   Definition big_sepL3_alt
-      (Φ : A → B → C → iProp Σ) (l1 : list A) (l2 : list B) (l3 : list C) : iProp Σ :=
+      (Φ : A → B → C → siProp) (l1 : list A) (l2 : list B) (l3 : list C) : siProp :=
     (⌜ length l1 = length l2 ⌝)%I ∧ big_sepL2 (fun _ ab c => Φ ab.1 ab.2 c) (zip l1 l2) l3.
 
   Lemma Forall3_same_length (l : list A) (k : list B) (m : list C) :
@@ -44,7 +35,7 @@ Section big_sepL3_alt.
   Qed.
 
   Lemma big_sepL3_alt_equiv
-      (Φ : A → B → C → iProp Σ) (l1 : list A) (l2 : list B) (l3 : list C) :
+      (Φ : A → B → C → siProp) (l1 : list A) (l2 : list B) (l3 : list C) :
     big_sepL3 Φ l1 l2 l3 ⊣⊢ big_sepL3_alt Φ l1 l2 l3.
   Proof.
     rewrite /big_sepL3_alt.
@@ -78,10 +69,10 @@ Section big_sepL3_lemmas.
   Context `{Σ : !gFunctors}.
   Context {A B C : Type}.
 
-  Global Instance big_sepL3_nil_persistent (Φ : A → B → C → iProp Σ) :
+  Global Instance big_sepL3_nil_persistent (Φ : A → B → C → siProp) :
     Persistent (big_sepL3 Φ [] [] []).
   Proof. simpl; apply _. Qed.
-  Global Instance big_sepL3_persistent (Φ : A → B → C → iProp Σ) l1 l2 l3 :
+  Global Instance big_sepL3_persistent (Φ : A → B → C → siProp) l1 l2 l3 :
     (∀ x1 x2 x3, Persistent (Φ x1 x2 x3)) →
     Persistent (big_sepL3 Φ l1 l2 l3).
   Proof.
@@ -90,7 +81,7 @@ Section big_sepL3_lemmas.
 
   (* TODO; clean up versions using alt version *)
   Lemma big_sepL3_lookup
-      (Φ : A → B → C → iProp Σ) l1 l2 l3 i x1 x2 x3 :
+      (Φ : A → B → C → siProp) l1 l2 l3 i x1 x2 x3 :
     l1 !! i = Some x1 → l2 !! i = Some x2 → l3 !! i = Some x3 →
     big_sepL3 Φ l1 l2 l3 ⊢ Φ x1 x2 x3.
   Proof.
@@ -109,7 +100,7 @@ Section big_sepL3_lemmas.
   Qed.
 
   Lemma big_sepL3_length
-      (Φ : A → B → C → iProp Σ) l1 l2 l3 : big_sepL3 Φ l1 l2 l3 ⊢ ⌜ length l1 = length l2 ⌝ ∧ ⌜ length l2 = length l3 ⌝.
+      (Φ : A → B → C → siProp) l1 l2 l3 : big_sepL3 Φ l1 l2 l3 ⊢ ⌜ length l1 = length l2 ⌝ ∧ ⌜ length l2 = length l3 ⌝.
   Proof.
     generalize dependent l3.
     generalize dependent l2.
@@ -120,7 +111,7 @@ Section big_sepL3_lemmas.
       iIntros "H". simpl. rewrite IHl1. iDestruct "H" as "[H %I]". iPureIntro. lia.
   Qed.
 
-  Lemma big_sepL3_fmap_l {A' : Type} (f : A → A') (Φ : A' → B → C → iProp Σ) l1 l2 l3 :
+  Lemma big_sepL3_fmap_l {A' : Type} (f : A → A') (Φ : A' → B → C → siProp) l1 l2 l3 :
     big_sepL3 (fun a b c => Φ (f a) b c) l1 l2 l3
     ⊣⊢ big_sepL3 (fun a b c => Φ a b c) (f <$> l1) l2 l3.
   Proof.
@@ -133,7 +124,7 @@ Section big_sepL3_lemmas.
       iSplit; iIntros "[H1 H2]"; iFrame "H1"; by iApply IHl1.
   Qed.
 
-  Lemma big_sepL3_fmap_r {C' : Type} (f : C → C') (Φ : A → B → C' → iProp Σ) l1 l2 l3 :
+  Lemma big_sepL3_fmap_r {C' : Type} (f : C → C') (Φ : A → B → C' → siProp) l1 l2 l3 :
     big_sepL3 (fun a b c => Φ a b (f c)) l1 l2 l3
     ⊣⊢ big_sepL3 (fun a b c => Φ a b c) l1 l2 (f <$> l3).
   Proof.
@@ -146,7 +137,7 @@ Section big_sepL3_lemmas.
       iSplit; iIntros "[H1 H2]"; iFrame "H1"; by iApply IHl1.
   Qed.
 
-  Lemma big_sepL3_impl (Φ Ψ : A → B → C → iProp Σ) l1 l2 l3 :
+  Lemma big_sepL3_impl (Φ Ψ : A → B → C → siProp) l1 l2 l3 :
     ⊢ big_sepL3 Φ l1 l2 l3 -∗ □ (∀ x1 x2 x3, Φ x1 x2 x3 -∗ Ψ x1 x2 x3) -∗ big_sepL3 Ψ l1 l2 l3.
   Proof.
     generalize dependent l3.
@@ -170,7 +161,7 @@ Section big_sepL3_lemmas.
       iIntros "[%Habc H]". iDestruct (IHl1 with "H") as "%Y". iPureIntro. by constructor.
   Qed.
 
-  Lemma big_sepL3_superfluous_zip_r_l (Φ : A → B → (A * C) → iProp Σ) l1 l2 l3 :
+  Lemma big_sepL3_superfluous_zip_r_l (Φ : A → B → (A * C) → siProp) l1 l2 l3 :
     big_sepL3 (fun a b c => Φ a b (a , c)) l1 l2 l3 ⊢ big_sepL3 Φ l1 l2 (zip l1 l3).
   Proof.
     generalize dependent l3.
@@ -182,7 +173,7 @@ Section big_sepL3_lemmas.
       iIntros "[H1 H2]". iFrame "H1". by iApply IHl1.
   Qed.
 
-  Lemma big_sepL3_app_inv (Φ : A → B → C → iProp Σ) l1 l2 l1' l2' l1'' l2'' :
+  Lemma big_sepL3_app_inv (Φ : A → B → C → siProp) l1 l2 l1' l2' l1'' l2'' :
     (length l1 = length l1' ∧ length l1' = length l1'') ∨ (length l2 = length l2' ∧ length l2' = length l2'') →
     (big_sepL3 Φ (l1 ++ l2) (l1' ++ l2') (l1'' ++ l2'')) -∗
     (big_sepL3 Φ l1 l1' l1'') ∗ (big_sepL3 Φ l2 l2' l2'').
@@ -207,21 +198,8 @@ Section big_sepL3_lemmas.
         simpl. iDestruct "H" as "[H1 H2]". iFrame "H1". iApply (IH with "H2"). auto.
   Qed.
 
-  Lemma big_sepL3_singleton (Φ : A → B → C → iProp Σ) (x1 : A) (x2 : B) (x3 : C) :
+  Lemma big_sepL3_singleton (Φ : A → B → C → siProp) (x1 : A) (x2 : B) (x3 : C) :
     (big_sepL3 Φ [x1] [x2] [x3]) ⊣⊢ Φ x1 x2 x3.
   Proof. simpl. iSplit; auto. by iIntros "[H _]". Qed.
-
-  (* Lemma big_sepL3_impl (Φ Ψ : A → B → C → iProp Σ) l1 l2 l3 : *)
-  (*   ⊢ □ (∀ x1 x2 x3, Φ x1 x2 x3 ∗-∗ Ψ x1 x2 x3) -∗ big_sepL3 Φ l1 l2 l3 ∗-∗ big_sepL3 Ψ l1 l2 l3. *)
-  (* Proof. *)
-  (*   generalize dependent l3. *)
-  (*   generalize dependent l2. *)
-  (*   generalize dependent l1. *)
-  (*   induction l1. *)
-  (*   - intros. destruct l2; destruct l3; auto. *)
-  (*   - intros. destruct l2; destruct l3; auto. simpl. specialize (IHl1 l2 l3). *)
-  (*     iIntros "#HΦΨ". *)
-  (*     iSplit; iIntros "[H1 H2]"; iSplitL "H1 HΦΨ"; try iApply "HΦΨ"; auto; try by iApply IHl1. *)
-  (* Qed. *)
 
 End big_sepL3_lemmas.

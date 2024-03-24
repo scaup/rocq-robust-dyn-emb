@@ -3,11 +3,11 @@ From main.prelude Require Import imports.
 
 Ltac rw_of_val :=
   repeat (
-      try change (Lam ?e) with (of_val $ LamV e);
-      try change (Lit ?b) with (of_val $ LitV b);
-      try change (InjL (of_val ?v)) with (of_val $ InjLV v);
-      try change (InjR (of_val ?v)) with (of_val $ InjRV v);
-      try change (Pair (of_val ?v) (of_val ?w)) with (of_val $ PairV v w)
+      repeat change (Lam ?e) with (of_val $ LamV e);
+      repeat change (Lit ?b) with (of_val $ LitV b);
+      repeat change (InjL (of_val ?v)) with (of_val $ InjLV v);
+      repeat change (InjR (of_val ?v)) with (of_val $ InjRV v);
+      repeat change (Pair (of_val ?v) (of_val ?w)) with (of_val $ PairV v w)
     ).
 
 Ltac rw_fill_item :=
@@ -15,19 +15,19 @@ Ltac rw_fill_item :=
   (try (rewrite /AppAn));
   rw_of_val;
   (repeat (
-      try change (App ?ℓ (of_val ?v) ?e) with (fill_item (AppRCtx ℓ v) e);
-      try change (App ?ℓ ?e1 ?e2) with (fill_item (AppLCtx ℓ e1) e2);
-      try change (Pair (of_val ?v1) ?e2) with (fill_item (PairRCtx v1) e2);
-      try change (Pair ?e1 ?e2) with (fill_item (PairLCtx e2) e1);
-      try change (Fst ?ℓ ?e) with (fill_item (FstCtx ℓ) e);
-      try change (Snd ?ℓ ?e) with (fill_item (SndCtx ℓ) e);
-      try change (InjL ?e) with (fill_item InjLCtx e);
-      try change (InjR ?e) with (fill_item InjRCtx e);
-      try change (Case ?ℓ ?e1 ?e2 ?e3) with (fill_item (CaseCtx ℓ e2 e3) e1);
-      try change (If ?ℓ ?e1 ?e2 ?e3) with (fill_item (IfCtx ℓ e2 e3) e1);
-      try change (BinOp ?ℓ ?op (of_val ?v1) ?e2) with (fill_item (BinOpRCtx ℓ op v1) e2);
-      try change (BinOp ?ℓ ?op ?e1 ?e2) with (fill_item (BinOpLCtx ℓ e2) e1);
-      try change (Seq ?ℓ ?e1 ?e2) with (fill_item (SeqCtx ℓ e2) e1)
+      repeat change (App ?ℓ (of_val ?v) ?e) with (fill_item (AppRCtx ℓ v) e);
+      repeat change (App ?ℓ ?e1 ?e2) with (fill_item (AppLCtx ℓ e2) e1);
+      repeat change (Pair (of_val ?v1) ?e2) with (fill_item (PairRCtx v1) e2);
+      repeat change (Pair ?e1 ?e2) with (fill_item (PairLCtx e2) e1);
+      repeat change (Fst ?ℓ ?e) with (fill_item (FstCtx ℓ) e);
+      repeat change (Snd ?ℓ ?e) with (fill_item (SndCtx ℓ) e);
+      repeat change (InjL ?e) with (fill_item InjLCtx e);
+      repeat change (InjR ?e) with (fill_item InjRCtx e);
+      repeat change (Case ?ℓ ?e1 ?e2 ?e3) with (fill_item (CaseCtx ℓ e2 e3) e1);
+      repeat change (If ?ℓ ?e1 ?e2 ?e3) with (fill_item (IfCtx ℓ e2 e3) e1);
+      repeat change (BinOp ?ℓ ?op (of_val ?v1) ?e2) with (fill_item (BinOpRCtx ℓ op v1) e2);
+      repeat change (BinOp ?ℓ ?op ?e1 ?e2) with (fill_item (BinOpLCtx ℓ op e2) e1);
+      repeat change (Seq ?ℓ ?e1 ?e2) with (fill_item (SeqCtx ℓ e2) e1)
     )).
 
 Ltac rw_fill := (* for e.g. bind lemmas *)
@@ -103,8 +103,7 @@ Proof. intros. simplify_eq. by constructor. Qed.
 
 Ltac step_solver :=
   by (lazymatch goal with
-      | |- step_not_error _ _ => rw_fill_popped; eapply (stepK _ ltac:(eauto)); eauto;
-                                 head_step_solver
+      | |- step_not_error _ _ => rw_fill_popped; eapply (stepK _ ltac:(eauto)); [head_step_solver | eauto ]
       | _ => fail "step_solver"
       end).
 
