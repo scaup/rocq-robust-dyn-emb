@@ -19,3 +19,42 @@ theories/search/stdpp.v
 theories/search/iris.v
 theories/search/heap_lang.v
 theories/search/autosubst.v
+
+# prelude stuff
+theories/prelude/imports.v
+theories/prelude/big_op_three.v
+theories/prelude/autosubst.v
+theories/prelude/base_lang.v
+theories/prelude/labels.v
+
+# dynamic language
+theories/dyn_lang/definition.v
+theories/dyn_lang/lib.v
+theories/dyn_lang/casts.v
+theories/dyn_lang/tactics.v
+theories/dyn_lang/labels.v
+
+# surface lang
+theories/surf_lang/types.v
+theories/surf_lang/definition.v
+
+# maps
+theories/maps/dyn_to_surf/definition.v
+theories/maps/surf_to_dyn/definition.v
+
+# logrel
+theories/dyn_lang/lemmas.v
+theories/logrel/lib/weakestpre.v
+theories/logrel/lib/rfn.v
+theories/logrel/definition.v
+
+
+theories/logrel/lib/wrappers.v
+
+# theories/logrel/lemmas/casts_compat.v
+# theories/logrel/lemmas/casts_superfluous.v
+
+
+## the bricks
+# theories/logrel/lemmas/casts.v
+# theories/logrel/lemmas/dyn_emb.v
