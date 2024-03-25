@@ -3,7 +3,7 @@ From main.dyn_lang Require Import definition lib casts tactics lemmas.
 From main.prelude Require Import imports labels autosubst.
 
 From main.logrel Require Import definition.
-From main.logrel.lib Require Import rfn weakestpre wrappers.
+From main.logrel.lib Require Import rfn weakestpre small_helpers.
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
 

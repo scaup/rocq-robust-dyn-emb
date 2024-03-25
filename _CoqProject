@@ -49,7 +49,7 @@ theories/logrel/lib/rfn.v
 theories/logrel/definition.v
 
 
-theories/logrel/lib/wrappers.v
+theories/logrel/lib/small_helpers.v
 
 theories/logrel/lemmas/casts_compat.v
 theories/logrel/lemmas/casts_superfluous.v

@@ -1,7 +1,7 @@
 From main.prelude Require Import imports autosubst big_op_three.
 From main.grad_lang Require Import types.
 From main.dyn_lang Require Import definition lemmas tactics labels lib.
-From main.logrel.lib Require Import weakestpre rfn wrappers.
+From main.logrel.lib Require Import weakestpre rfn small_helpers.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
