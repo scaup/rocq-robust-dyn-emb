@@ -337,6 +337,114 @@ Proof.
     by eapply fill_item_step_Error_inv.
 Qed.
 
+(* ------------- *)
+Lemma step_ne_step e e' : step_ne e e' → step e e'.
+Proof. destruct 1. by apply S_Normal, H_not_error. Qed.
+
+(* Lemma head_step_not_error_head_step_ne e e' (H : head_step e e') (H' : to_error e' = None) : *)
+(*   head_step_ne e e'. *)
+(* Proof. inversion H. by simplify_eq. auto. Qed. *)
+
+(* Lemma step_not_error_step_ne e e' (H : step e e') (H' : ¬ ∃ ℓ, faulty e ℓ) : *)
+(*   step_ne e e'. *)
+(* Proof. *)
+(*   inversion H; simplify_eq. *)
+(*   - inversion HS; simplify_eq. *)
+(*     + exfalso. apply H'. exists ℓ, K, e_h. split; auto. *)
+(*     + by constructor. *)
+(*   - exfalso. apply H'. eexists ℓ, K, _. split; eauto. *)
+(* Qed. *)
+
+(* Lemma step_step_ne_or_faulty e e' (H : step e e') : *)
+(*   (step_ne e e') ∨ (∃ ℓ, faulty e ℓ). *)
+(* Proof. *)
+(*   inversion H; simplify_eq. *)
+(*   - inversion HS; simplify_eq. *)
+(*     + right. exists ℓ, K, e_h. split; auto. *)
+(*     + by constructor. *)
+(*   - right. eexists ℓ, K, _. split; eauto. *)
+(* Qed. *)
+
+Lemma step_faulty_error e ℓ (H : faulty e ℓ) :
+  rtc step e (Error ℓ).
+Proof.
+  destruct H as (K & eh & -> & [hf | ->]).
+  - simpl.
+    eapply (rtc_transitive _ (fill K (Error ℓ))).
+    apply rtc_once. econstructor. by econstructor.
+    destruct K as [|Ki K]. apply rtc_refl.
+    apply rtc_once. econstructor. auto.
+  - destruct K as [|Ki K]. apply rtc_refl.
+    apply rtc_once. econstructor. auto.
+Qed.
+
+(* Lemma step_step_ne_val e v : *)
+(*   step e (of_val v) -> step_ne e (of_val v). *)
+(* Proof. *)
+(*   intros. inversion H; simplify_eq. *)
+(*   - inversion HS; simplify_eq. *)
+(*     + exfalso. *)
+(*       destruct (fill_val K (Error ℓ)) as [w eq]. *)
+(*       { exists v. by rewrite H2 to_of_val. } *)
+(*       inversion eq. *)
+(*     + by constructor. *)
+(*   - destruct v; inversion H0. *)
+(* Qed. *)
+
+(* step preservers faultyness *)
+
+Lemma step_preserves_faulty e ℓ (H : faulty e ℓ) e' (H' : step e e') : faulty e' ℓ.
+Proof.
+  inversion H'; simplify_eq.
+  - destruct HS.
+    + assert (faulty (fill K e) ℓ0). exists K, e. split; eauto.
+      rewrite (faulty_unique_label _ _ _ H H1). eexists; eauto.
+    + exfalso. eapply (faulty_not_stop _ _ H). by econstructor.
+  - exists [], (Error ℓ); split; eauto.
+    assert (faulty (fill K (Error ℓ0)) ℓ0). repeat eexists; eauto.
+    by rewrite (faulty_unique_label _ _ _ H H1).
+Qed.
+
+Lemma rtc_step_ne_step_invariant e :
+  ∀ t, rtc step e t → (rtc step_ne e t ∨ (∃ ℓ, faulty t ℓ ∧ ∃ t', rtc step_ne e t' ∧ faulty t' ℓ)).
+Proof.
+  apply (rtc_ind_r (fun t => (rtc step_ne e t ∨ (∃ ℓ, faulty t ℓ ∧ ∃ t', rtc step_ne e t' ∧ faulty t' ℓ)))); [ left; apply rtc_refl |  ].
+  intros y z Hey Hyz [Hney | (ℓ & Hf & t' & Het' & Hft')].
+  - inversion Hyz; simplify_eq.
+    + inversion HS; simplify_eq.
+      * right. exists ℓ. split. exists K, (Error ℓ). auto. exists (fill K e_h). split; auto. exists K, e_h. eauto.
+      * left. apply (rtc_transitive _ (fill K e_h)); auto.
+        eapply rtc_congruence. intros. by eapply fill_step. apply rtc_once. by apply (SNE_Normal []).
+    + right. exists ℓ. split. exists [], (Error ℓ). auto. exists (fill K (Error ℓ)). split; auto.
+      exists K, (Error ℓ). split; auto.
+  - right. exists ℓ. split; auto.
+    eapply (step_preserves_faulty y); eauto.
+    exists t'. split; auto.
+Qed.
+
+
+Lemma rtc_step_step_ne_to_val e v :
+  rtc step e (of_val v) <-> rtc step_ne e (of_val v).
+Proof.
+  split.
+  - intro H. destruct (rtc_step_ne_step_invariant _ _ H) as [yeah | (ℓ & absurd & _)]; auto.
+    exfalso. by eapply faulty_not_val.
+  - apply (rtc_congruence id _ _ _ step_ne_step).
+Qed.
+
+Lemma rtc_step_step_ne_to_error e ℓ :
+  rtc step e (Error ℓ) <-> ∃ t, faulty t ℓ ∧ rtc step_ne e t.
+Proof.
+  split.
+  - intro H. destruct (rtc_step_ne_step_invariant _ _ H) as [yeah | (ℓ' & ft & t' & Hs & Hf)]; auto.
+    + exists (Error ℓ). split; eauto. eexists []; eauto.
+    + exists t'. split; auto. assert (faulty (Error ℓ) ℓ). by exists []; eauto.
+      by rewrite -(faulty_unique_label _ _ _ ft H0).
+  - intros (t & Hf & Hs).
+    apply (rtc_transitive _ t).
+    by apply (rtc_congruence id _ _ _ step_ne_step). by apply step_faulty_error.
+Qed.
+
 
 (* ----- *)
 
