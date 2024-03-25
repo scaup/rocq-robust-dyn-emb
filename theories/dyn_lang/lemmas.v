@@ -88,22 +88,22 @@ Proof. induction K; auto. apply IHK. eapply fill_item_faulty_inv. by apply fill_
 (** pure step *)
 (** ----------------------------------- *)
 
-Lemma fill_step e e' (H : step_not_error e e') K :
-  step_not_error (fill K e) (fill K e').
+Lemma fill_step e e' (H : step_ne e e') K :
+  step_ne (fill K e) (fill K e').
 Proof. inversion H. repeat rewrite -fill_app. by econstructor. Qed.
 
 Lemma pure_head_ctx_step_val Ki e e2 :
-  head_step_not_error (fill_item Ki e) e2 → is_Some (to_val e).
+  head_step_ne (fill_item Ki e) e2 → is_Some (to_val e).
 Proof.
   inversion 1; simplify_eq; destruct Ki; simplify_option_eq; eexists; eauto.
 Qed.
 
 Lemma val_pure_head_stuck e1 e2 :
-  head_step_not_error e1 e2 → to_val e1 = None.
+  head_step_ne e1 e2 → to_val e1 = None.
 Proof. destruct 1; auto. Qed.
 
 Lemma step_no_val e1 e2 :
-  step_not_error e1 e2 → to_val e1 = None.
+  step_ne e1 e2 → to_val e1 = None.
 Proof.
   destruct 1; auto. apply fill_not_val.
   by eapply val_pure_head_stuck.
@@ -112,7 +112,7 @@ Qed.
 Lemma pure_step_by_val K K' e1 e1' e2 :
   fill K e1 = fill K' e1' →
   to_val e1 = None →
-  head_step_not_error e1' e2 →
+  head_step_ne e1' e2 →
   ∃ K'', K' = K ++ K''.
 Proof.
   intros Hfill Hred Hstep.
@@ -149,8 +149,8 @@ Proof.
 Qed.
 
 Lemma fill_pure_step_inv (K : ectx) e1' e2 :
-  to_val e1' = None → step_not_error (fill K e1') e2 →
-  ∃ e2', e2 = fill K e2' ∧ step_not_error e1' e2'.
+  to_val e1' = None → step_ne (fill K e1') e2 →
+  ∃ e2', e2 = fill K e2' ∧ step_ne e1' e2'.
 Proof.
   intros Hnval Hstep.
   inversion Hstep.
@@ -161,11 +161,11 @@ Proof.
 Qed.
 
 
-Lemma ne_head_step_det e e1 e2 : head_step_not_error e e1 → head_step_not_error e e2 → e1 = e2.
+Lemma ne_head_step_det e e1 e2 : head_step_ne e e1 → head_step_ne e e2 → e1 = e2.
 Proof. intros H1 H2. inversion H1; inversion H2; simplify_eq; auto. Qed.
 
 
-Lemma ne_step_det (e e1 e2 : expr) : step_not_error e e1 → step_not_error e e2 → e1 = e2.
+Lemma ne_step_det (e e1 e2 : expr) : step_ne e e1 → step_ne e e2 → e1 = e2.
 Proof.
   intros H1 H2.
   inversion H1; inversion H2. simplify_eq.
@@ -178,10 +178,10 @@ Proof.
   f_equal. rewrite (fill_inj K _ _ H3) in HS0. by eapply ne_head_step_det.
 Qed.
 
-Lemma ne_head_step_not_head_faulty e e' (H : head_step_not_error e e') ℓ (H' : head_faulty e ℓ): False.
+Lemma ne_head_step_not_head_faulty e e' (H : head_step_ne e e') ℓ (H' : head_faulty e ℓ): False.
 Proof. inversion H; inversion H'; simplify_eq; simpl in *; simplify_eq; simplify_option_eq. Qed.
 
-Lemma faulty_not_stop e ℓ (H : faulty e ℓ) e' (Hstep : step_not_error e e') : False.
+Lemma faulty_not_stop e ℓ (H : faulty e ℓ) e' (Hstep : step_ne e e') : False.
 Proof.
   destruct H as (K & e_h & -> & disj).
   inversion Hstep. simplify_eq.

@@ -103,38 +103,38 @@ Definition bin_op_eval (op : bin_op) (z1 z2 : Z) : val :=
  end.
 
 (* "head step not error" *)
-Inductive head_step_not_error : expr → expr → Prop :=
+Inductive head_step_ne : expr → expr → Prop :=
   (* base values destructors *)
   | HNE_Seq ℓ e :
-    head_step_not_error (Seq ℓ (Lit LitUnit) e) e
+    head_step_ne (Seq ℓ (Lit LitUnit) e) e
   | HNE_If ℓ b e1 e2 :
-    head_step_not_error (If ℓ (Lit $ LitBool $ b) e1 e2) (match b with
+    head_step_ne (If ℓ (Lit $ LitBool $ b) e1 e2) (match b with
                                               | true => e1
                                               | false => e2
                                               end)
   | HNE_BinOp (ℓ : label) (op : bin_op) z1 z2 :
-    head_step_not_error (BinOp ℓ op (Lit $ LitInt z1) (Lit $ LitInt z2))
+    head_step_ne (BinOp ℓ op (Lit $ LitInt z1) (Lit $ LitInt z2))
                         (of_val $ bin_op_eval op z1 z2)
   (* sums values destructors *)
   | HNE_Case_L ℓ e0 v0 e1 e2 :
     to_val e0 = Some v0 →
-    head_step_not_error (Case ℓ (InjL e0) e1 e2) (e1.[of_val v0/])
+    head_step_ne (Case ℓ (InjL e0) e1 e2) (e1.[of_val v0/])
   | HNE_Case_R ℓ e0 v0 e1 e2 :
     to_val e0 = Some v0 →
-    head_step_not_error (Case ℓ (InjR e0) e1 e2) (e2.[of_val v0/])
+    head_step_ne (Case ℓ (InjR e0) e1 e2) (e2.[of_val v0/])
   (* pair values destructors *)
   | HNE_Fst ℓ e1 v1 e2 v2 :
     to_val e1 = Some v1 →
     to_val e2 = Some v2 →
-    head_step_not_error (Fst ℓ (Pair e1 e2)) e1
+    head_step_ne (Fst ℓ (Pair e1 e2)) e1
   | HNE_Snd ℓ e1 v1 e2 v2 :
     to_val e1 = Some v1 →
     to_val e2 = Some v2 →
-    head_step_not_error (Snd ℓ (Pair e1 e2)) e2
+    head_step_ne (Snd ℓ (Pair e1 e2)) e2
   (* lambda destructors *)
   | HNE_App ℓ eb ea va :
     to_val ea = Some va →
-    head_step_not_error (App ℓ (Lam eb) ea) (eb.[ea/]).
+    head_step_ne (App ℓ (Lam eb) ea) (eb.[ea/]).
 
 (* Inductive shape := S_Unit | S_Bool | S_Int | S_Inj | S_Pair | S_Lam. *)
 
@@ -191,7 +191,7 @@ Inductive head_faulty : expr → label → Prop :=
 
 Inductive head_step : expr → expr → Prop :=
   | H_error e ℓ (H : head_faulty e ℓ) : head_step e (Error ℓ)
-  | H_not_error e e' (H : head_step_not_error e e') : head_step e e'.
+  | H_not_error e e' (H : head_step_ne e e') : head_step e e'.
 
 (** Evaluation contexts *)
 Inductive ectx_item :=
@@ -234,9 +234,9 @@ Definition fill (K : ectx) (e : expr) : expr :=
 Instance fill_item_inj Ki : Inj (=) (=) (fill_item Ki).
 Proof. destruct Ki; intros ???; simplify_eq/=; auto with f_equal. Qed.
 
-Inductive step_not_error : expr → expr → Prop :=
-  | SNE_Normal (K : ectx) e_h e_h' (HS : head_step_not_error e_h e_h') :
-    step_not_error (fill K e_h) (fill K e_h').
+Inductive step_ne : expr → expr → Prop :=
+  | SNE_Normal (K : ectx) e_h e_h' (HS : head_step_ne e_h e_h') :
+    step_ne (fill K e_h) (fill K e_h').
 
 Inductive step : expr → expr → Prop :=
   | S_Normal (K : ectx) e_h e_h' (HS : head_step e_h e_h') :
@@ -337,10 +337,10 @@ Definition faulty (e : expr) (ℓ : label) : Prop :=
 (*  is_Some (to_val (fill_item Ki e)) → is_Some (to_val e). *)
 (* Proof. intros [v ?]. destruct Ki; simplify_option_eq; eauto. Qed. *)
 (* Lemma val_stuck e1 e2 : *)
-(*  head_step_not_error e1 e2 → to_val e1 = None. *)
+(*  head_step_ne e1 e2 → to_val e1 = None. *)
 (* Proof. destruct 1; done. Qed. *)
 (* Lemma head_ctx_step_val Ki e e2 : *)
-(*  head_step_not_error (fill_item Ki e) e2 → is_Some (to_val e). *)
+(*  head_step_ne (fill_item Ki e) e2 → is_Some (to_val e). *)
 (* Proof. *)
 (*  destruct Ki; inversion_clear 1; simplify_option_eq; eauto. *)
 (* Qed. *)
@@ -399,9 +399,9 @@ Definition faulty (e : expr) (ℓ : label) : Prop :=
 (*     to_val e2 = Some v2 → *)
 (*     head_error (App ℓ e1 e2) ℓ. *)
 
-(* Inductive step_not_error : expr → expr → Prop := *)
-(*   | S_Normal (K : ectx) e_h e_h' (HS : head_step_not_error e_h e_h') : *)
-(*     step_not_error (fill K e_h) (fill K e_h'). *)
+(* Inductive step_ne : expr → expr → Prop := *)
+(*   | S_Normal (K : ectx) e_h e_h' (HS : head_step_ne e_h e_h') : *)
+(*     step_ne (fill K e_h) (fill K e_h'). *)
 
 
 

@@ -9,7 +9,7 @@ Section wp.
   Inductive class (e : expr) : Type :=
     | Is_Value v (H : e = of_val v)
     | Is_Faulty ℓ (H : faulty e ℓ)
-    | Take_NE_Step e' (H : step_not_error e e').
+    | Take_NE_Step e' (H : step_ne e e').
 
   Definition wp_pre (wp : (val -d> siProp) -d> (label -d> siProp) -d> (expr -d> siProp)) :
     (val -d> siProp) -d> (label -d> siProp) -d> (expr -d> siProp) := λ Φ L e,
@@ -56,13 +56,13 @@ Section wp.
       iApply wp_faulty; [apply (fill_faulty _ _ H K) | auto ].
     - (* step case where we use lob induction *)
       rewrite (wp_unfold _ _ (fill K e)) /wp_pre /=.
-      assert (Hstep' : step_not_error (fill K e) (fill K e')).
+      assert (Hstep' : step_ne (fill K e) (fill K e')).
       { inversion_clear Hstep. repeat rewrite -fill_app. by eapply SNE_Normal. }
       iExists (Take_NE_Step _ _ Hstep').
       iNext. by iApply "HLöb".
   Qed.
 
-  Lemma wp_s {e2} {e1} (H : step_not_error e1 e2) Φ L :
+  Lemma wp_s {e2} {e1} (H : step_ne e1 e2) Φ L :
     ▷ wp Φ L e2 ⊢ wp Φ L e1.
   Proof.
     iIntros "H".
@@ -70,7 +70,7 @@ Section wp.
     by iExists (Take_NE_Step _ _ H).
   Qed.
 
-  Lemma wp_s_inv {e2} {e1} (H : step_not_error e1 e2) Φ L :
+  Lemma wp_s_inv {e2} {e1} (H : step_ne e1 e2) Φ L :
     wp Φ L e1 ⊢ ▷ wp Φ L e2.
   Proof.
     iIntros "H".
@@ -159,7 +159,7 @@ Section wp_adequacy.
   Inductive adequate_now (ϕ : val → Prop) (l : label → Prop) (e : expr) : Prop :=
     | Ad_Value v (H : e = of_val v) (Hϕ : ϕ v)
     | Ad_Faulty ℓ (H : faulty e ℓ) (Hl : l ℓ)
-    | Ad_Step_NE e' (H : step_not_error e e').
+    | Ad_Step_NE e' (H : step_ne e e').
 
   Lemma wp_adequacy_now ϕ l e
     (H : ⊢ (wp (fun v => ⌜ ϕ v ⌝) (fun ℓ => ⌜ l ℓ ⌝) e)%I) : adequate_now ϕ l e.
@@ -176,7 +176,7 @@ Section wp_adequacy.
 
   (* general adequacy *)
 
-  Lemma wp_later_soundness (Φ : val → siProp) L e e' (H : step_not_error e e') (H' : ⊢ wp Φ L e) : ⊢ wp Φ L e'.
+  Lemma wp_later_soundness (Φ : val → siProp) L e e' (H : step_ne e e') (H' : ⊢ wp Φ L e) : ⊢ wp Φ L e'.
   Proof.
     apply siProp.later_soundness.
     (* apply (@pure_soundness (iResUR Σ)). *)
@@ -192,7 +192,7 @@ Section wp_adequacy.
   Qed.
 
   Lemma wp_adequacy_nlater ϕ l :
-    ∀ n e (H : ⊢ (wp (fun v => ⌜ ϕ v ⌝) (fun ℓ => ⌜ l ℓ ⌝))%I e) e' (H : nsteps step_not_error n e e'),
+    ∀ n e (H : ⊢ (wp (fun v => ⌜ ϕ v ⌝) (fun ℓ => ⌜ l ℓ ⌝))%I e) e' (H : nsteps step_ne n e e'),
       adequate_now ϕ l e'.
   Proof.
     induction n.
@@ -202,13 +202,13 @@ Section wp_adequacy.
   Qed.
 
   Record adequate (ϕ : val → Prop) (l : label → Prop) e := {
-    adequate_val : ∀ v, rtc step_not_error e (of_val v) → ϕ v ;
-    adequate_faulty : ∀ e' ℓ, faulty e' ℓ → rtc step_not_error e e' → l ℓ ;
+    adequate_val : ∀ v, rtc step_ne e (of_val v) → ϕ v ;
+    adequate_faulty : ∀ e' ℓ, faulty e' ℓ → rtc step_ne e e' → l ℓ ;
     }.
 
   Lemma adequate_alt e1 (φ : val → Prop) (l : label → Prop) :
     adequate φ l e1 ↔ ∀ t2,
-      rtc step_not_error e1 t2 →
+      rtc step_ne e1 t2 →
         (∀ v2, t2 = of_val v2 → φ v2) ∧
         (∀ ℓ, faulty t2 ℓ → l ℓ).
   Proof.
@@ -219,7 +219,7 @@ Section wp_adequacy.
 
   Lemma adequate_alt' e1 (φ : val → Prop) (l : label → Prop) :
     adequate φ l e1 ↔ ∀ n t2,
-      nsteps step_not_error n e1 t2 →
+      nsteps step_ne n e1 t2 →
         (∀ v2, t2 = of_val v2 → φ v2) ∧
         (∀ ℓ, faulty t2 ℓ → l ℓ).
   Proof.

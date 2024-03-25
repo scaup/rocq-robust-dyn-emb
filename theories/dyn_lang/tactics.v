@@ -71,7 +71,7 @@ Ltac head_step_sides :=
 
 Ltac head_step_solver :=
   by (lazymatch goal with
-      | |- head_step_not_error _ _ => simpl; econstructor; head_step_sides
+      | |- head_step_ne _ _ => simpl; econstructor; head_step_sides
       | _ => fail "head_step_solver"
       end).
 
@@ -93,9 +93,9 @@ Ltac head_faulty_solver :=
 
 Lemma stepK (K : ectx) {e t t' e'} :
   e = fill K t →
-  head_step_not_error t t' →
+  head_step_ne t t' →
   e' = fill K t' →
-  step_not_error e e'.
+  step_ne e e'.
 Proof. intros. simplify_eq. by constructor. Qed.
 
 (* Ltac rw_pop_head := *)
@@ -103,7 +103,7 @@ Proof. intros. simplify_eq. by constructor. Qed.
 
 Ltac step_solver :=
   by (lazymatch goal with
-      | |- step_not_error _ _ => rw_fill_popped; eapply (stepK _ ltac:(eauto)); [head_step_solver | eauto ]
+      | |- step_ne _ _ => rw_fill_popped; eapply (stepK _ ltac:(eauto)); [head_step_solver | eauto ]
       | _ => fail "step_solver"
       end).
 

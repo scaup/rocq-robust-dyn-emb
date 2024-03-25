@@ -83,9 +83,9 @@ End lib.
 
 (* Lemma stepK (K : ectx) {e t t'} e' : *)
 (*   e = fill K t → *)
-(*   head_step_not_error t t' → *)
+(*   head_step_ne t t' → *)
 (*   e' = fill K t' → *)
-(*   step_not_error e e'. *)
+(*   step_ne e e'. *)
 (* Proof. intros. simplify_eq. by constructor. Qed. *)
 
 (* Instance decision_eq : EqDecision shape. *)
@@ -96,7 +96,7 @@ End lib.
 (*   Context {ν : label} {Hν : NeverOccurs ν}. *)
 
 (*   Lemma bimap_prod_eval (ℓ : label) (f1 f2 : val) (v1 v2 : val) : *)
-(*     nsteps step_not_error 5 *)
+(*     nsteps step_ne 5 *)
 (*       (App ℓ (of_val $ bimap_prod ℓ f1 f2) (Pair (of_val v1) (of_val v2))) *)
 (*       (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2))). *)
 (*   Proof. *)
@@ -120,7 +120,7 @@ End lib.
 (*     (shape_val v ≠ (S_Bin Product) ∧ faulty (App ℓ (of_val $ bimap_prod ℓ f1 f2) (of_val v)) ℓ) *)
 (*     ∨ *)
 (*     (∃ v1 v2, v = PairV v1 v2 ∧ *)
-(*               nsteps step_not_error 5 *)
+(*               nsteps step_ne 5 *)
 (*                  (App ℓ (of_val $ bimap_prod ℓ f1 f2) (of_val v)) *)
 (*                  (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2)))). *)
 (*   Proof. *)
@@ -131,6 +131,6 @@ End lib.
 
 
 (*   Lemma bimap_sum_eval (ℓ : label) (f1 f2 : val) (v1 v2 : val) : *)
-(*     nsteps step_not_error 5 *)
+(*     nsteps step_ne 5 *)
 (*       (App ℓ (of_val $ bimap_prod ℓ f1 f2) (Pair (of_val v1) (of_val v2))) *)
 (*       (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2))). *)

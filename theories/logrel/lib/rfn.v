@@ -8,27 +8,27 @@ From iris.proofmode Require Import tactics.
 Section rfn.
 
   Definition val_lift_r : (val -d> val -d> siProp) -d> val -d> expr -d> siProp :=
-    λ Φ v e', (∃ v', ⌜ rtc step_not_error e' (of_val v') ⌝ ∗ Φ v v')%I.
+    λ Φ v e', (∃ v', ⌜ rtc step_ne e' (of_val v') ⌝ ∗ Φ v v')%I.
 
   (* Definition lbl_lift_r : (label -> label -> Prop) -d> label -d> expr -d> siProp := *)
   (* Definition lbl_lift_r : (label -d> label -d> iProp) -> label -> expr -> Prop := *)
   Definition lbl_lift_r : (label -> label -> Prop) -> label -> expr -> Prop :=
-    λ L ℓ e', ((∃ t' ℓ', rtc step_not_error e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ')).
+    λ L ℓ e', ((∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ')).
 
   Definition rfn : (val -d> val -d> siProp) -d> (label -> label -> Prop) -d> expr -d> expr -d> siProp :=
     λ Φ L e e', wp (λ v, val_lift_r Φ v e')%I
                    (λ ℓ, ⌜ lbl_lift_r L ℓ e' ⌝)%I e.
 
   (* Definition rfn : (val -d> val -d> siProp) -d> (label -d> label -d> siProp) -d> expr -d> expr -d> siProp := *)
-  (*   λ Φ L e e', wp (λ v, ∃ v', ⌜ rtc step_not_error e' (of_val v') ⌝ ∗ Φ v v')%I *)
-  (*               (λ ℓ, ∃ t' ℓ', ⌜ rtc step_not_error e' t' ⌝ ∗ ⌜ faulty t' ℓ' ⌝ ∗ L ℓ ℓ')%I e. *)
+  (*   λ Φ L e e', wp (λ v, ∃ v', ⌜ rtc step_ne e' (of_val v') ⌝ ∗ Φ v v')%I *)
+  (*               (λ ℓ, ∃ t' ℓ', ⌜ rtc step_ne e' t' ⌝ ∗ ⌜ faulty t' ℓ' ⌝ ∗ L ℓ ℓ')%I e. *)
 
-  Lemma eval_stable_val_lift_r Φ v e e' (H : rtc step_not_error e e') :
+  Lemma eval_stable_val_lift_r Φ v e e' (H : rtc step_ne e e') :
     val_lift_r Φ v e ≡ val_lift_r Φ v e'.
   Proof.
     rewrite /val_lift_r. do 3 f_equiv. iApply bi.pure_iff.
     split; intros H'.
-    - eapply (rtc_ind_r (fun t => rtc step_not_error t (of_val a)) e H'); eauto.
+    - eapply (rtc_ind_r (fun t => rtc step_ne t (of_val a)) e H'); eauto.
       intros x y Hex Hxy Hxa. clear Hex H' H.
       destruct (rtc_inv _ _ Hxa) as [-> | (y' & Hxy' & Hy'a)].
       + exfalso.
@@ -37,12 +37,12 @@ Section rfn.
     - by eapply rtc_transitive.
   Qed.
 
-  Lemma eval_stable_lbl_lift_r L ℓ e e' (H : rtc step_not_error e e') :
+  Lemma eval_stable_lbl_lift_r L ℓ e e' (H : rtc step_ne e e') :
     lbl_lift_r L ℓ e <-> lbl_lift_r L ℓ e'.
   Proof.
     rewrite /lbl_lift_r. do 4 f_equiv. rename a0 into ℓ'.
     split; intros (H' & Hf & Hl); split; eauto.
-    - eapply (rtc_ind_r (fun t => rtc step_not_error t a) e H'); eauto.
+    - eapply (rtc_ind_r (fun t => rtc step_ne t a) e H'); eauto.
       intros x y Hex Hxy Hxa. clear Hex H' H.
       destruct (rtc_inv _ _ Hxa) as [-> | (y' & Hxy' & Hy'a)].
       + exfalso. by eapply faulty_not_stop.
@@ -99,7 +99,7 @@ Section rfn.
   Proof. iIntros "H". iApply (wp_impl with "H"); eauto. Qed.
 
   Lemma rfn_steps_r {e e1} e2 {Φ L}
-     (H : rtc step_not_error e1 e2)
+     (H : rtc step_ne e1 e2)
     : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof.
     iApply rfn_impl_r.
@@ -108,7 +108,7 @@ Section rfn.
   Qed.
 
   Lemma rfn_steps_r_inv {e e1} e2 {Φ L}
-     (H : rtc step_not_error e2 e1)
+     (H : rtc step_ne e2 e1)
     : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof.
     iApply rfn_impl_r.
@@ -116,19 +116,19 @@ Section rfn.
     - intros ℓ H'. by rewrite <- eval_stable_lbl_lift_r.
   Qed.
 
-  Lemma rfn_s_l {e1 e2} (H : step_not_error e1 e2) Φ L e' :
+  Lemma rfn_s_l {e1 e2} (H : step_ne e1 e2) Φ L e' :
     ▷ rfn Φ L e2 e' ⊢ rfn Φ L e1 e'.
   Proof. by iApply wp_s. Qed.
 
-  Lemma rfn_s_l_inv {e1 e2} (H : step_not_error e1 e2) Φ L e' :
+  Lemma rfn_s_l_inv {e1 e2} (H : step_ne e1 e2) Φ L e' :
     rfn Φ L e1 e' ⊢ ▷ rfn Φ L e2 e'.
   Proof. by iApply wp_s_inv. Qed.
 
-  Lemma rfn_s_r {e1 e2} (H : step_not_error e1 e2) Φ L e :
+  Lemma rfn_s_r {e1 e2} (H : step_ne e1 e2) Φ L e :
     ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof. iApply rfn_steps_r. by eapply rtc_once. Qed.
 
-  Lemma rfn_s_r_inv {e1} e2 (H : step_not_error e1 e2) Φ L e :
+  Lemma rfn_s_r_inv {e1} e2 (H : step_ne e1 e2) Φ L e :
     ⊢ rfn Φ L e e1 -∗ rfn Φ L e e2.
   Proof. iApply rfn_steps_r_inv. by eapply rtc_once. Qed.
 
