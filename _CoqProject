@@ -35,12 +35,12 @@ theories/dyn_lang/tactics.v
 theories/dyn_lang/labels.v
 
 # surface lang
-theories/surf_lang/types.v
-theories/surf_lang/definition.v
+theories/grad_lang/types.v
+theories/grad_lang/definition.v
 
 # maps
-theories/maps/dyn_to_surf/definition.v
-theories/maps/surf_to_dyn/definition.v
+theories/maps/dyn_embedding/definition.v
+theories/maps/grad_into_dyn/definition.v
 
 # logrel
 theories/dyn_lang/lemmas.v

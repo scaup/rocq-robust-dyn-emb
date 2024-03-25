@@ -1,4 +1,4 @@
-From main.surf_lang Require Import types.
+From main.grad_lang Require Import types.
 From main.dyn_lang Require Import definition lib.
 From main.prelude Require Import imports labels autosubst.
 

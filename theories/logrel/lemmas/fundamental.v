@@ -1,5 +1,5 @@
 From main.prelude Require Import imports autosubst big_op_three.
-From main.surf_lang Require Import types.
+From main.grad_lang Require Import types.
 From main.dyn_lang Require Import definition lemmas tactics labels lib.
 From main.logrel.lib Require Import weakestpre rfn wrappers.
 
@@ -7,7 +7,7 @@ From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
 
 From main.logrel Require Import definition.
-From main.maps Require Import dyn_to_surf.definition surf_to_dyn.definition.
+From main.maps Require Import dyn_embedding.definition grad_into_dyn.definition.
 
 Section fundamental.
 

@@ -1,6 +1,6 @@
 From main Require Import imports.  (* prelude.autosubst. *)
 From main.dyn_lang Require Import definition.  (* lib. *)
-From main.surf_lang Require Import types definition.
+From main.grad_lang Require Import types definition.
 
 (* The dynamic embedding, of the dynamic language into the gradual one. *)
 
@@ -13,7 +13,7 @@ Section dyn_emb.
   Definition LetIn (e1 e2 : expr) : expr :=
     App (Lam e2) e1.
 
-  Fixpoint dyn_emb (e : dyn_lang.definition.expr) : surf_lang.definition.expr :=
+  Fixpoint dyn_emb (e : dyn_lang.definition.expr) : grad_lang.definition.expr :=
     match e with
     | dyn_lang.definition.Lit b =>
         AssertAn (base_lit_type b) Unknown (Lit b)

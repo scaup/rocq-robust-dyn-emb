@@ -1,5 +1,5 @@
 From main.prelude Require Import imports autosubst big_op_three.
-From main.surf_lang Require Import types.
+From main.grad_lang Require Import types.
 From main.dyn_lang Require Import definition lemmas lib labels.
 From main.logrel.lib Require Import weakestpre rfn.
 
