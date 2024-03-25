@@ -88,6 +88,10 @@ Proof. induction K; auto. apply IHK. eapply fill_item_faulty_inv. by apply fill_
 (** pure step *)
 (** ----------------------------------- *)
 
+Lemma fill_step e e' (H : step_not_error e e') K :
+  step_not_error (fill K e) (fill K e').
+Proof. inversion H. repeat rewrite -fill_app. by econstructor. Qed.
+
 Lemma pure_head_ctx_step_val Ki e e2 :
   head_step_not_error (fill_item Ki e) e2 → is_Some (to_val e).
 Proof.
@@ -194,6 +198,43 @@ Proof.
   - simplify_eq. inversion HS.
 Qed.
 
+Lemma faulty_unique_label (e : expr) (ℓ1 ℓ2 : label) : faulty e ℓ1 → faulty e ℓ2 → ℓ1 = ℓ2.
+Proof.
+  intros H1 H2.
+  destruct H1 as (K1 & e_h1 & eq1 & disj1).
+  destruct H2 as (K2 & e_h2 & eq2 & disj2). simplify_eq.
+  assert (K1 = K2) as <-.
+  { destruct (pure_step_by_val' K1 K2 _ _ ℓ2 eq2) as [Kred eq]; eauto. destruct disj1 as [a | b]; [by inversion a| by inversion b].
+    destruct (pure_step_by_val' K2 K1 _ _ ℓ1 (eq_Symmetric _ _ eq2)) as [Kred' eq']; eauto. destruct disj2 as [a | b]; [by inversion a| by inversion b].
+    assert (H: length K1 = length ((K1 ++ Kred) ++ Kred')). by rewrite -eq eq'. rewrite -app_assoc app_length app_length in H.
+    destruct Kred'; [ | exfalso; simpl in *; lia ]. destruct Kred; [ | exfalso; simpl in *; lia ].
+    by rewrite app_nil_r in eq. }
+  destruct disj1 as [a1 | b1], disj2 as [a2 | b2].
+  - inversion a1; inversion a2; simplify_eq; try done.
+  - inversion a1; inversion b2; simplify_eq; try done.
+  - inversion b1; inversion a2; simplify_eq; try done.
+  - inversion b1; inversion b2; simplify_eq; try done.
+Qed.
+
+Lemma faulty_not_val v e ℓ (Hv : of_val v = e) (H : faulty e ℓ) : False.
+Proof.
+  destruct H as (K & e_h & -> & disj).
+  destruct K as [|Ki K]; inversion Hv.
+  - simpl in *. simplify_eq. inversion disj; destruct v; inversion H; simplify_option_eq.
+  - destruct Ki; destruct v; inversion H0; simplify_eq.
+    + simpl in *. destruct (fill_val K e_h) as [w eq]. by rewrite -H1 to_of_val.
+      rewrite -(of_to_val _ _ eq) in disj.
+      destruct disj as [a | b]. destruct w; inversion a. destruct w; inversion b.
+    + simpl in *. destruct (fill_val K e_h) as [w eq]. by rewrite -H2 to_of_val.
+      rewrite -(of_to_val _ _ eq) in disj.
+      destruct disj as [a | b]. destruct w; inversion a. destruct w; inversion b.
+    + simpl in *. destruct (fill_val K e_h) as [w eq]. by rewrite -H1 to_of_val.
+      rewrite -(of_to_val _ _ eq) in disj.
+      destruct disj as [a | b]. destruct w; inversion a. destruct w; inversion b.
+    + simpl in *. destruct (fill_val K e_h) as [w eq]. by rewrite -H1 to_of_val.
+      rewrite -(of_to_val _ _ eq) in disj.
+      destruct disj as [a | b]. destruct w; inversion a. destruct w; inversion b.
+Qed.
 
 (** normal step *)
 (** ----------------------------------- *)

@@ -23,22 +23,51 @@ Section rfn.
   (*   λ Φ L e e', wp (λ v, ∃ v', ⌜ rtc step_not_error e' (of_val v') ⌝ ∗ Φ v v')%I *)
   (*               (λ ℓ, ∃ t' ℓ', ⌜ rtc step_not_error e' t' ⌝ ∗ ⌜ faulty t' ℓ' ⌝ ∗ L ℓ ℓ')%I e. *)
 
+  Lemma eval_stable_val_lift_r Φ v e e' (H : rtc step_not_error e e') :
+    val_lift_r Φ v e ≡ val_lift_r Φ v e'.
+  Proof.
+    rewrite /val_lift_r. do 3 f_equiv. iApply bi.pure_iff.
+    split; intros H'.
+    - eapply (rtc_ind_r (fun t => rtc step_not_error t (of_val a)) e H'); eauto.
+      intros x y Hex Hxy Hxa. clear Hex H' H.
+      destruct (rtc_inv _ _ Hxa) as [-> | (y' & Hxy' & Hy'a)].
+      + exfalso.
+        assert (H := (step_no_val _ _ Hxy)). by rewrite to_of_val in H.
+      + by rewrite (ne_step_det _ _ _ Hxy Hxy').
+    - by eapply rtc_transitive.
+  Qed.
+
+  Lemma eval_stable_lbl_lift_r L ℓ e e' (H : rtc step_not_error e e') :
+    lbl_lift_r L ℓ e <-> lbl_lift_r L ℓ e'.
+  Proof.
+    rewrite /lbl_lift_r. do 4 f_equiv. rename a0 into ℓ'.
+    split; intros (H' & Hf & Hl); split; eauto.
+    - eapply (rtc_ind_r (fun t => rtc step_not_error t a) e H'); eauto.
+      intros x y Hex Hxy Hxa. clear Hex H' H.
+      destruct (rtc_inv _ _ Hxa) as [-> | (y' & Hxy' & Hy'a)].
+      + exfalso. by eapply faulty_not_stop.
+      + by rewrite (ne_step_det _ _ _ Hxy Hxy').
+    - by eapply rtc_transitive.
+  Qed.
+
   Lemma rfn_bind' K e K' e' Ψ Φ L :
     ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L (fill K e) (fill K' e').
   Proof.
     iIntros "Hee' Hc". rewrite /rfn.
     iApply (wp_bind with "[Hee' Hc]").
     iApply (wp_impl with "Hee'").
-    { iIntros (ℓ) "H". iDestruct "H" as (t' ℓ') "(Hsteps & Hf & HΨ)".
-      iExists (fill K' t'), ℓ'. admit. }
+    { iIntros (ℓ). iApply bi.pure_mono. rewrite /lbl_lift_r.
+      intros (t' & ℓ' & He't & Hf & Hl). exists (fill K' t'), ℓ'. repeat split; auto.
+      - eapply rtc_congruence; eauto. intros. by eapply fill_step.
+      - by eapply fill_faulty. }
     iIntros (v) "H".  iDestruct "H" as (v') "[%Hsteps HΨ]".
     iSpecialize ("Hc" with "HΨ").
     iApply (wp_impl with "Hc").
-    { iIntros (ℓ) "H". iDestruct "H" as (t' ℓ') "(Hsteps & Hf & HΨ)".
-      iExists (fill K' t'), ℓ'. admit. }
-    { iIntros (w) "H". iDestruct "H" as (w') "(Hsteps & HΨ)".
-      iExists w'. iFrame. admit. }
-  Admitted.
+    { iIntros (ℓ). iApply bi.pure_mono. apply eval_stable_lbl_lift_r.
+      eapply rtc_congruence; eauto. intros. by eapply fill_step. }
+    { iIntros (w) "Hw". iApply (eval_stable_val_lift_r with "Hw").
+      eapply rtc_congruence; eauto. intros. by eapply fill_step. }
+  Qed.
 
   Lemma rfn_impl e1 e2 Φ Φ' L L' (HLL' : le_permissive L' L) :
     ⊢ rfn Φ' L' e1 e2 -∗ (∀ v v', Φ' v v' -∗ Φ v v') -∗ rfn Φ L e1 e2.
@@ -69,14 +98,22 @@ Section rfn.
     : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof. iIntros "H". iApply (wp_impl with "H"); eauto. Qed.
 
-  Lemma rfn_s_r {e1 e2} (H : step_not_error e1 e2) Φ L e :
-    ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
+  Lemma rfn_steps_r {e e1} e2 {Φ L}
+     (H : rtc step_not_error e1 e2)
+    : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof.
     iApply rfn_impl_r.
-    - iIntros (v) "H". iDestruct "H" as (v') "[%Hs Hv]". iExists v'. iFrame.
-      iPureIntro. by eapply rtc_l.
-    - intros ℓ Hr. destruct Hr as (e' & ℓ' & Hs & Hf & HL).
-      rewrite /lbl_lift_r. exists e', ℓ'. split; auto. by eapply rtc_l.
+    - iIntros (v) "H". by iApply eval_stable_val_lift_r.
+    - intros ℓ. by eapply eval_stable_lbl_lift_r.
+  Qed.
+
+  Lemma rfn_steps_r_inv {e e1} e2 {Φ L}
+     (H : rtc step_not_error e2 e1)
+    : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
+  Proof.
+    iApply rfn_impl_r.
+    - iIntros (v) "H". by rewrite eval_stable_val_lift_r.
+    - intros ℓ H'. by rewrite <- eval_stable_lbl_lift_r.
   Qed.
 
   Lemma rfn_s_l {e1 e2} (H : step_not_error e1 e2) Φ L e' :
@@ -87,31 +124,12 @@ Section rfn.
     rfn Φ L e1 e' ⊢ ▷ rfn Φ L e2 e'.
   Proof. by iApply wp_s_inv. Qed.
 
+  Lemma rfn_s_r {e1 e2} (H : step_not_error e1 e2) Φ L e :
+    ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
+  Proof. iApply rfn_steps_r. by eapply rtc_once. Qed.
+
   Lemma rfn_s_r_inv {e1} e2 (H : step_not_error e1 e2) Φ L e :
     ⊢ rfn Φ L e e1 -∗ rfn Φ L e e2.
-  Proof.
-    iApply rfn_impl_r.
-    - iIntros (v) "H". iDestruct "H" as (v') "[%Hs Hv]". iExists v'. iFrame.
-      iPureIntro.
-      { inversion Hs.
-        - simplify_eq. exfalso.
-          assert (H' := step_no_val _ _ H). by rewrite to_of_val in H'.
-        - simplify_eq. by rewrite (ne_step_det _ _ _ H H0). }
-    - intros ℓ Hℓ. rewrite /lbl_lift_r. destruct Hℓ as (e' & ℓ' & Hs & Hf & HL).
-      rewrite /lbl_lift_r.
-      { inversion Hs; simplify_eq.
-        - exfalso. by eapply faulty_not_stop.
-        - rewrite (ne_step_det _ _ _ H H0). exists e', ℓ'. split; auto. }
-  Qed.
-
-  (* Lemma rfn_lam_app_later_body Φ L e e' w w' ν ν' : *)
-  (*   rfn Φ L (App ν (Lam e) (of_val w)) (App ν' (Lam e') (of_val w')) ⊣⊢ ▷ rfn Φ L e.[of_val w/] e'.[of_val w'/]. *)
-  (* Proof. *)
-  (*   assert (Hstep : step_not_error (App ν (Lam e) (of_val w)) e.[of_val w/]) by step_solver. *)
-  (*   assert (Hstep' : step_not_error (App ν' (Lam e') (of_val w')) e'.[of_val w'/]) by step_solver. *)
-  (*   iSplit. *)
-  (*   - iIntros "H". iApply rfn_s_r_inv; eauto. iApply rfn_s_l_inv; eauto. *)
-  (*   - iIntros "H". iApply rfn_s_r; eauto. iApply rfn_s_l; eauto. *)
-  (* Qed. *)
+  Proof. iApply rfn_steps_r_inv. by eapply rtc_once. Qed.
 
 End rfn.

@@ -51,8 +51,9 @@ theories/logrel/definition.v
 
 theories/logrel/lib/wrappers.v
 
-# theories/logrel/lemmas/casts_compat.v
-# theories/logrel/lemmas/casts_superfluous.v
+theories/logrel/lemmas/casts_compat.v
+theories/logrel/lemmas/casts_superfluous.v
+theories/logrel/lemmas/fundamental.v
 
 
 ## the bricks

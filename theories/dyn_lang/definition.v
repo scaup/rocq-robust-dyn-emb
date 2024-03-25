@@ -174,10 +174,14 @@ Inductive head_faulty : expr → label → Prop :=
     to_val e0 = Some v0 →
     shape_val v0 ≠ S_Bin Sum →
     head_faulty (Case ℓ e0 e1 e2) ℓ
-  | HE_Proj ℓ e v :
+  | HE_Fst ℓ e v :
     to_val e = Some v →
     shape_val v ≠ S_Bin Product →
     head_faulty (Fst ℓ e) ℓ
+  | HE_Snd ℓ e v :
+    to_val e = Some v →
+    shape_val v ≠ S_Bin Product →
+    head_faulty (Snd ℓ e) ℓ
   (* lambda destructors *)
   | HE_App ℓ e1 v1 e2 v2 :
     to_val e1 = Some v1 →

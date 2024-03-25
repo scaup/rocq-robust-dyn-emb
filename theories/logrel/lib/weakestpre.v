@@ -35,13 +35,10 @@ Section wp.
   Proof.
     iIntros "H". rewrite wp_unfold. iDestruct "H" as (C) "H".
     destruct C.
-    - admit.
-    - admit.
-    - admit.
-  Admitted.
-
-  (* Lemma wp_val_inv Φ L e v (H : e = of_val v) : wp Φ L e ⊢ Φ v. *)
-  (* Proof. iIntros "H". assert (H' := of_to_val e v). rewrite to_of_val in H'. at 1.  (to_of_val ) iApply wp_val. eauto. iExists v2. iFrame. iPureIntro. rewrite H2. by apply rtc_refl. Qed. *)
+    - by rewrite (inj of_val _ _ H).
+    - exfalso. eapply faulty_not_val; eauto.
+    - assert (H' := step_no_val _ _ H). by rewrite to_of_val in H'.
+  Qed.
 
   Lemma wp_faulty Φ L e ℓ (H : faulty e ℓ) : L ℓ ⊢ wp Φ L e.
   Proof. iIntros "HΦ". rewrite wp_unfold /wp_pre. by iExists (Is_Faulty _ _ H). Qed.
@@ -240,65 +237,16 @@ Section wp_adequacy.
     - split.
       + intros v' eq. by simplify_eq.
       + intros ℓ Hf. simplify_eq.
-        admit.
+        exfalso. eapply faulty_not_val; eauto.
     - split.
-      + intros v eq. exfalso. simplify_eq. admit.
-      + intros ℓ' Hf. simplify_eq. admit.
+      + intros v eq. exfalso. simplify_eq.
+        exfalso. eapply faulty_not_val; eauto.
+      + intros ℓ' Hf. simplify_eq. rewrite -(faulty_unique_label _ _ _ H1 Hf); auto.
     - split.
-      + intros v eq. exfalso. simplify_eq. admit.
-      + intros ℓ Hf. exfalso. simplify_eq. admit.
-  Admitted.
+      + intros v eq. exfalso. simplify_eq.
+        assert (H' := step_no_val _ _ H1). by rewrite to_of_val in H'.
+      + intros ℓ Hf. exfalso. simplify_eq.
+        eapply faulty_not_stop; eauto.
+  Qed.
 
 End wp_adequacy.
-
-
-(*   Record adequate_simple e (ϕ : val → Prop) (l : label → Prop) := { *)
-(*     adequate_simple_val : ∀ v, e = of_val v → ϕ v ; *)
-(*     adequate_simple_faulty : ∀ ℓ, faulty e ℓ → l ℓ ; *)
-(*     }. *)
-
-(*   (* do this first *) *)
-(*   Inductive adequacy_class_simple (e : expr) (ϕ : val → Prop) (l : label → Prop) : Prop := *)
-(*     | Ad_Value v (H : e = of_val v) (Hϕ : ϕ v) *)
-(*     | Ad_Faulty ℓ (H : faulty e ℓ) (Hl : l ℓ) *)
-(*     | Ad_Step_NE e' (H : step_not_error e e'). *)
-(*     (* | Ad_No_Value_No_Faulty (H : ∀ ℓ, ¬ faulty e ℓ) (H' : to_val e = None). *) *)
-
-
-(*   Lemma wp_step_adequacy (Σ : gFunctors) (Φ : val → iProp Σ) L e e' (H : step_not_error e e') (H' : ⊢ wp e Φ L) : ⊢ wp e' Φ L. *)
-(*   Proof. *)
-(*     apply later_soundness. *)
-(*     (* apply (@pure_soundness (iResUR Σ)). *) *)
-(*     rewrite wp_unfold /wp_pre in H'. *)
-(*     iDestruct H' as "H'". clear H'. iDestruct "H'" as (C) "H'". *)
-(*     destruct C. *)
-(*     - (* absurd case *) admit. *)
-(*     - (* absurd case *) admit. *)
-(*     - (* follows from purity *) admit. *)
-(*   Admitted. *)
-
-(*   Lemma wp_adequacy_simply ϕ l (Σ : gFunctors) e (H : ⊢ (@wp Σ e (fun v => ⌜ ϕ v ⌝) (fun ℓ => ⌜ l ℓ ⌝))%I) : adequacy_class_simple e ϕ l. *)
-(*   Proof. *)
-(*     apply (@pure_soundness (iResUR Σ)). *)
-(*     iDestruct H as "H". clear H. *)
-(*     rewrite wp_unfold /wp_pre. *)
-(*     iDestruct "H" as (C) "H". *)
-(*     destruct C as [v -> | ℓ H | e' Hstep]. *)
-(*     - iDestruct "H" as "%H". iPureIntro. by eapply Ad_Value. *)
-(*     - iDestruct "H" as "%H'". iPureIntro. by eapply Ad_Faulty. *)
-(*     - iPureIntro. by eapply Ad_Step_NE. *)
-(*   Qed. *)
-
-(*   Lemma wp_adequacy (Σ : gFunctors) ϕ l : *)
-(*     ∀ n e (H : ⊢ (@wp Σ e (fun v => ⌜ ϕ v ⌝) (fun ℓ => ⌜ l ℓ ⌝))%I) e' (H : nsteps step_not_error n e e'), *)
-(*       adequacy_class_simple e' ϕ l. *)
-(*   Proof. *)
-(*     induction n. *)
-(*     - intros. inversion H0. simplify_eq. by eapply wp_adequacy_simply. *)
-(*     - intros. inversion H0. simplify_eq. rename y into e1. *)
-(*       apply (IHn e1). { by eapply wp_step_adequacy. } auto. *)
-(*   Qed. *)
-
-(* End wp_adequacy. *)
-
-(* (* step_fupdN_soundness_gen : *) *)
