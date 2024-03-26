@@ -48,14 +48,16 @@ theories/logrel/lib/weakestpre.v
 theories/logrel/lib/rfn.v
 theories/logrel/definition.v
 
-
 theories/logrel/lib/small_helpers.v
 
 theories/logrel/lemmas/casts_compat.v
 theories/logrel/lemmas/casts_superfluous.v
 theories/logrel/lemmas/fundamental.v
 
+# wrapper
+theories/maps/wrapper/definition.v
+theories/maps/wrapper/lemmas.v
 
-## the bricks
-# theories/logrel/lemmas/casts.v
-# theories/logrel/lemmas/dyn_emb.v
+# grad typing cont
+theories/grad_lang/typing.v
+theories/grad_lang/contexts.v

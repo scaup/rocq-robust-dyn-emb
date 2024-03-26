@@ -128,8 +128,26 @@ Section Autosubst_Lemmas.
     assert (p' : length ts ≤ x). by apply lookup_ge_None. lia.
   Qed.
 
+  Lemma subst_list_lookup_some es n e : es !! n = Some e → subst_list es n = e.
+  Proof.
+    generalize dependent n.
+    induction es.
+    - intros. rewrite lookup_nil in H. inversion H.
+    - intros n. asimpl. destruct n; auto.
+      rewrite lookup_cons. asimpl. intros. simplify_option_eq. auto.
+      intros H. simpl in H. asimpl. by rewrite IHes.
+  Qed.
 
+  (* TODO FIX; we don't need INJ *)
 
+  (* Lemma subst_list_default_rw es n : subst_list es n = default (ids (n - length es)) (es !! n). *)
+  (* Proof. *)
+  (*   generalize dependent n. *)
+  (*   induction es. *)
+  (*   - intros. asimpl. rewrite lookup_nil /=. f_equiv. lia. *)
+  (*   - intros n. asimpl. destruct n; auto. *)
+  (*     rewrite lookup_cons. asimpl. by rewrite IHes. *)
+  (* Qed. *)
 
 End Autosubst_Lemmas.
 
