@@ -33,6 +33,7 @@ theories/dyn_lang/lib.v
 theories/dyn_lang/casts.v
 theories/dyn_lang/tactics.v
 theories/dyn_lang/labels.v
+theories/dyn_lang/contexts.v
 
 # surface lang
 theories/grad_lang/types.v
@@ -61,3 +62,4 @@ theories/maps/wrapper/lemmas.v
 # grad typing cont
 theories/grad_lang/typing.v
 theories/grad_lang/contexts.v
+theories/grad_lang/labels.v

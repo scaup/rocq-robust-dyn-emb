@@ -35,7 +35,8 @@ Section fundamental.
   Ltac permissive_solver :=
       lazymatch goal with
       | HΔ : le_permissive _ ?Δ |- le_permissive _ ?Δ =>
-          (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver)
+          (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; set_solver)
+          (* (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver) *)
       | _ => fail "ads"
       end.
 
@@ -45,7 +46,8 @@ Section fundamental.
     Ltac delta_solver :=
       lazymatch goal with
       | HΔ : le_permissive _ ?Δ |- ?Δ _ _ =>
-          (apply HΔ, unary_conj_id; rewrite /occursIn; set_solver)
+          (apply HΔ, unary_conj_id; set_solver)
+          (* (apply HΔ, unary_conj_id; rewrite /elemhood; set_solver) *)
       | _ => fail "ads"
       end.
 
@@ -67,7 +69,7 @@ Ltac closed_solver :=
   end.
 
   Lemma fundamental_r (e : expr) n (Hne : Closed_n n e) :
-    open_exprel_typed (replicate n Unknown) (Lbls e) e (⌊ (⌜⌜ e ⌝⌝) ⌋) Unknown.
+    open_exprel_typed (replicate n Unknown) (InDynExpr e) e (⌊ (⌜⌜ e ⌝⌝) ⌋) Unknown.
   Proof.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
@@ -165,12 +167,12 @@ Ltac closed_solver :=
       iApply (IHe2 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
       iIntros (v2 v2') "#H2". asimpl.
       rfn_steps. rfn_val. rewrite (valrel_unknown_unfold _ (PairV _ _)). by iFrame "H1 H2".
-    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; rewrite /occursIn; set_solver.
+    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; set_solver.
   Qed.
 
 
   Lemma fundamental_l (e : expr) n (Hne : Closed_n n e) :
-    open_exprel_typed (replicate n Unknown) (Lbls e) (⌊ (⌜⌜ e ⌝⌝) ⌋) e Unknown.
+    open_exprel_typed (replicate n Unknown) (InDynExpr e) (⌊ (⌜⌜ e ⌝⌝) ⌋) e Unknown.
   Proof.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
@@ -268,7 +270,7 @@ Ltac closed_solver :=
       iApply (IHe2 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
       iIntros (v2 v2') "#H2". asimpl.
       rfn_steps. rfn_val. rewrite (valrel_unknown_unfold _ (PairV _ _)). by iFrame "H1 H2".
-    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; rewrite /occursIn; set_solver.
+    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; set_solver.
   Qed.
 
 End fundamental.

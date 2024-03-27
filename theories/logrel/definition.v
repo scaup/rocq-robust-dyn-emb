@@ -9,7 +9,7 @@ From iris.proofmode Require Import tactics.
 
 Section logrel.
 
-  Context {ν : label} {Hν : NeverOccurs ν}.
+  (* Context {ν : label} {Hν : NeverOccurs ν}. *)
 
   (* Definition pairs := list (prod label label). *)
 
@@ -117,12 +117,25 @@ Section logrel.
 
   (* Notation "a ⪯ b" := (less_possibilities_then a b) (at level 30). *)
 
-  Definition open_exprel_typed (Γ : list type) (L : LabelRel) (e e' : expr) (τ : type) :=
-    ∀ (Δ : LabelRel) (H : le_permissive L Δ) (vs vs' : list val),
-        big_sepL3 (fun τ v v' => valrel_typed τ Δ v v') Γ vs vs' ⊢
-            exprel_typed τ Δ e.[subst_list (of_val <$> vs)] e'.[subst_list (of_val <$> vs')].
-
 End logrel.
+
+Definition open_exprel_typed (Γ : list type) (L : LabelRel) (e e' : expr) (τ : type) : Prop :=
+  ∀ (Δ : LabelRel) (H : le_permissive L Δ) (vs vs' : list val),
+      big_sepL3 (fun τ v v' => valrel_typed τ Δ v v') Γ vs vs' ⊢
+          exprel_typed τ Δ e.[subst_list (of_val <$> vs)] e'.[subst_list (of_val <$> vs')].
+
+From main.dyn_lang Require Import contexts.
+
+Definition ctx_rel_typed (L : LabelRel) (C C' : ctx)
+  (Γ : list type)(*hole*) (τ : type)(*hole*) (Γout : list type)(*outer*) (τout : type)(*outer*) : Prop :=
+  ∀ L' (H : le_permissive L L') e e' (Hee' : open_exprel_typed Γ L' e e' τ),
+      open_exprel_typed Γout L' (fill_ctx C e) (fill_ctx C' e') τout.
+
+Lemma open_exprel_typed_weaken (L L' : LabelRel) (H : le_permissive L L')
+  (Γ : list type) (e e' : expr) (τ : type) :
+  open_exprel_typed Γ L e e' τ → open_exprel_typed Γ L' e e' τ.
+Proof. intros. intros Δ HL'Δ. apply H0. by eapply le_permissive_trans'. Qed.
+
 
 
   (*  Lemma open_exprel_typed_nil τ e e' : (⊢ exprel_typed τ e e') -> open_exprel_typed [] e e' τ. *)

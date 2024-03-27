@@ -1,7 +1,9 @@
 From main.prelude Require Import imports autosubst big_op_three.
-From main.grad_lang Require Import types definition typing.
-From main.dyn_lang Require Import definition lemmas tactics labels lib.
+From main.grad_lang Require Import types definition typing labels contexts.
+From main.dyn_lang Require Import definition lemmas tactics lib casts contexts.
 From main.logrel.lib Require Import weakestpre rfn small_helpers.
+
+(* From main.logrel.lemmas Require Import casts_compat. *)
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
@@ -12,6 +14,80 @@ From main.maps Require Import grad_into_dyn.definition.
 Section fundamental.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
+
+  Lemma fundamental_r Γ e τ (H : typed Γ e τ) :
+    open_exprel_typed Γ (InGradExpr e) (⌊ e ⌋) (⌊ e ⌋) τ.
+  Proof.
+    induction H; simpl; iIntros (Δ HΔ vs vs') "Hvs".
+    - admit.
+    - admit.
+    - admit.
+    (* - destruct (consistency_decision τ1 τ2); [ | by exfalso]. *)
+    (*   change (App ν ?e ?e').[?σ] with (App ν e.[σ] e'.[σ]). rewrite cast_closed. *)
+    (*   admit. *)
+
+    - admit.
+  Admitted.
+
+
+  Lemma fundamental_r_ctx_item Ci Γ τ Γ' τ' (HCi : typed_ctx_item Ci Γ τ Γ' τ') :
+    ctx_rel_typed (InGradCtx_item Ci) [trns_ctx_item Ci] [trns_ctx_item Ci] Γ τ Γ' τ'.
+  Proof.
+    intros L HCiL e e' Hee'. simpl. destruct HCi; simpl.
+  Admitted.
+
+  Lemma fundamental_r_ctx C Γ τ Γ' τ' (HC : typed_ctx C Γ τ Γ' τ') :
+    ctx_rel_typed (InGradCtx C) (trns_ctx C) (trns_ctx C) Γ τ Γ' τ'.
+  Proof.
+    intros L HCiL e e' Hee'. induction HC; simpl. auto.
+    eapply fundamental_r_ctx_item; eauto. rewrite /InGradCtx in HCiL.
+    apply (le_permissive_trans' _ _ _ HCiL). apply le_perm_unary_conj. intros k Hk; set_solver.
+    apply IHHC.
+    apply (le_permissive_trans' _ _ _ HCiL). apply le_perm_unary_conj. intros k Hk; set_solver.
+    auto.
+  Qed.
+
+  Lemma fundamental_r_ctx_item Ci Γ τ Γ' τ' (HCi : typed_ctx_item Ci Γ τ Γ' τ') :
+    ctx_rel_typed (InGradCtx_item Ci) [trns_ctx_item Ci] [trns_ctx_item Ci] Γ τ Γ' τ'.
+  Proof.
+    intros L HCiL e e' Hee'. simpl. destruct HCi; simpl.
+
+
+  Lemma fundamental_r_ctx_item Ci Γ τ Γ' τ' (HCi : typed_ctx_item Ci Γ τ Γ' τ') :
+    ctx_rel_typed (InGradCtx_item Ci) [trns_ctx_item Ci] [trns_ctx_item Ci] Γ τ Γ' τ'.
+  Proof.
+    intros L HCiL e e' Hee'. simpl. destruct Ci; simpl.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+    - admit.
+
+    rewrite /ctx_rel_typed. intros L HCiL e e' Hee' Δ HCiΔ vs vs'. iIntros "Hvsvs'". simpl.
+    des
+
+
+
+    intros L
+
+    intros e. e.
+
+    open_exprel_typed Γ (InGradExpr e) (⌊ e ⌋) (⌊ e ⌋) τ.
+  Proof.
+    induction H; simpl; iIntros (Δ HΔ vs vs') "Hvs".
+    - admit.
+    (* - destruct (consistency_decision τ1 τ2); [ | by exfalso]. *)
+    (*   change (App ν ?e ?e').[?σ] with (App ν e.[σ] e'.[σ]). rewrite cast_closed. *)
+    (*   admit. *)
+
+    - admit.
+  Admitted.
 
 
   Lemma rfn_bindK {K K' t t' e e' Ψ Φ L} :

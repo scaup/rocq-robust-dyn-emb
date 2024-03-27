@@ -1,5 +1,4 @@
 From main Require Import imports.
-
 From main.grad_lang Require Import types definition.
 From main.dyn_lang Require Import definition casts lib.
 
@@ -7,7 +6,7 @@ From main.dyn_lang Require Import definition casts lib.
 
 Definition sf_expr := grad_lang.definition.expr .
 
-Section anon.
+Section expr.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
@@ -33,6 +32,50 @@ Section anon.
                          end
     end.
 
-End anon.
+End expr.
 
 Notation "⌊ e ⌋" := (trns e).
+
+From main.grad_lang Require Import contexts.
+From main.dyn_lang Require Import contexts.
+
+Section contexts.
+
+  Context {ν : label} {Hν : NeverOccurs ν}.
+
+  Definition trns_ctx_item (Ci : grad_lang.contexts.ctx_item) : ctx_item :=
+    match Ci with
+    | grad_lang.contexts.CTX_Lam => CTX_Lam
+    | grad_lang.contexts.CTX_AppL e2 => CTX_AppL ν (trns e2)
+    | grad_lang.contexts.CTX_AppR e1 => CTX_AppR ν (trns e1)
+    | grad_lang.contexts.CTX_PairL e2 => CTX_PairL (trns e2)
+    | grad_lang.contexts.CTX_PairR e1 => CTX_PairR (trns e1)
+    | grad_lang.contexts.CTX_Fst => CTX_Fst ν
+    | grad_lang.contexts.CTX_Snd => CTX_Snd ν
+    | grad_lang.contexts.CTX_InjL => CTX_InjL
+    | grad_lang.contexts.CTX_InjR => CTX_InjR
+    | grad_lang.contexts.CTX_CaseL e1 e2 => CTX_CaseL ν (trns e1) (trns e2)
+    | grad_lang.contexts.CTX_CaseM e0 e2 => CTX_CaseM ν (trns e0) (trns e2)
+    | grad_lang.contexts.CTX_CaseR e0 e1 => CTX_CaseR ν (trns e0) (trns e1)
+    | grad_lang.contexts.CTX_BinOpL op e2 => CTX_BinOpL ν op (trns e2)
+    | grad_lang.contexts.CTX_BinOpR op e1 => CTX_BinOpR ν op (trns e1)
+    | grad_lang.contexts.CTX_IfL e1 e2 => CTX_IfL ν (trns e1) (trns e2)
+    | grad_lang.contexts.CTX_IfM e0 e2 => CTX_IfM ν (trns e0) (trns e2)
+    | grad_lang.contexts.CTX_IfR e0 e1 => CTX_IfR ν (trns e0) (trns e1)
+    | grad_lang.contexts.CTX_SeqL e2 => CTX_SeqL ν (trns e2)
+    | grad_lang.contexts.CTX_SeqR e1 => CTX_SeqR ν (trns e1)
+    | CTX_Ascribe ℓ τ1 τ2 =>
+        (CTX_AppR ν $ match consistency_decision τ1 τ2 with
+                      | inl Pc => (of_val $ cast ℓ τ1 τ2 Pc)
+                      | inr _ => Lit LitUnit
+                      end)
+    end.
+
+  Definition trns_ctx (C : grad_lang.contexts.ctx) : ctx :=
+    trns_ctx_item <$> C.
+
+End contexts.
+
+Notation "ci⌊ Ci ⌋" := (trns_ctx_item Ci).
+
+Notation "c⌊ C ⌋" := (trns_ctx C).

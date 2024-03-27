@@ -1,40 +1,73 @@
-From main Require Import imports grad_lang.definition prelude.labels.
+From main Require Import imports grad_lang.definition prelude.labels grad_lang.contexts.
 
-Fixpoint getLabels (e : expr) : listset label :=
+Fixpoint labels_expr (e : expr) : listset label :=
   match e with
   | Lit b => ∅
   | Seq e1 e2 =>
-        getLabels e1 ∪ getLabels e2
+        labels_expr e1 ∪ labels_expr e2
   | If e0 e1 e2 =>
-        getLabels e0 ∪ getLabels e1 ∪ getLabels e2
+        labels_expr e0 ∪ labels_expr e1 ∪ labels_expr e2
   | BinOp binop e1 e2 =>
-        getLabels e1 ∪ getLabels e2
+        labels_expr e1 ∪ labels_expr e2
   | Var v => ∅
   | Lam e =>
-        getLabels e
+        labels_expr e
   | App e1 e2 =>
-        getLabels e1 ∪ getLabels e2
+        labels_expr e1 ∪ labels_expr e2
   | InjL e =>
-        getLabels e
+        labels_expr e
   | InjR e =>
-        getLabels e
+        labels_expr e
   | Case e0 e1 e2 =>
-        getLabels e0 ∪ getLabels e1 ∪ getLabels e2
+        labels_expr e0 ∪ labels_expr e1 ∪ labels_expr e2
   | Fst e =>
-        getLabels e
+        labels_expr e
   | Snd e =>
-        getLabels e
+        labels_expr e
   | Pair e1 e2 =>
-        getLabels e1 ∪ getLabels e2
+        labels_expr e1 ∪ labels_expr e2
   | Error ℓ =>
         {[ ℓ ]}
   | Ascribe ℓ τ1 τ2 e =>
-        {[ ℓ ]} ∪ getLabels e
+        {[ ℓ ]} ∪ labels_expr e
   end.
 
-Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ getLabels e.
+Definition labels_ctx_item (Ci : ctx_item) : listset label :=
+  match Ci with
+  | CTX_Lam => ∅
+  | CTX_AppL e2 => labels_expr e2
+  | CTX_AppR e1 => labels_expr e1
+  | CTX_PairL e2 => labels_expr e2
+  | CTX_PairR e1 => labels_expr e1
+  | CTX_Fst => ∅
+  | CTX_Snd => ∅
+  | CTX_InjL => ∅
+  | CTX_InjR => ∅
+  | CTX_CaseL e1 e2 => labels_expr e1 ∪ labels_expr e2
+  | CTX_CaseM e0 e2 => labels_expr e0 ∪ labels_expr e2
+  | CTX_CaseR e0 e1 => labels_expr e0 ∪ labels_expr e1
+  | CTX_BinOpL op e2 => labels_expr e2
+  | CTX_BinOpR op e1 => labels_expr e1
+  | CTX_IfL e1 e2 => labels_expr e1 ∪ labels_expr e2
+  | CTX_IfM e0 e2 => labels_expr e0 ∪ labels_expr e2
+  | CTX_IfR e0 e1 => labels_expr e0 ∪ labels_expr e1
+  | CTX_SeqL e2 => labels_expr e2
+  | CTX_SeqR e1 => labels_expr e1
+  | CTX_Ascribe ℓ τ1 τ2 => {[ ℓ ]}
+  end.
 
-Definition AscriptLbls (e : expr) : LabelRel :=
-  unary_conj (occursIn e).
+Definition labels_ctx (C : ctx) : listset label :=
+  foldr (fun Ci ℓs => labels_ctx_item Ci ∪ ℓs) ∅ C.
+
+(* Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ labels_expr e. *)
+
+Definition InGradExpr (e : expr) : LabelRel :=
+  unary_conj (fun ℓ => ℓ ∈ (labels_expr e)).
+
+Definition InGradCtx_item (Ci : ctx_item) : LabelRel :=
+  unary_conj (fun ℓ => ℓ ∈ (labels_ctx_item Ci)).
+
+Definition InGradCtx (C : ctx) : LabelRel :=
+  unary_conj (fun ℓ => ℓ ∈ (labels_ctx C)).
 
 (* Notation "Δ e" := (Diagonal e) (at level 0). *)
