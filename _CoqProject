@@ -63,3 +63,6 @@ theories/maps/wrapper/lemmas.v
 theories/grad_lang/typing.v
 theories/grad_lang/contexts.v
 theories/grad_lang/labels.v
+
+# casts compat
+theories/logrel/lemmas/compats.v

@@ -75,7 +75,3 @@ Section contexts.
     trns_ctx_item <$> C.
 
 End contexts.
-
-Notation "ci⌊ Ci ⌋" := (trns_ctx_item Ci).
-
-Notation "c⌊ C ⌋" := (trns_ctx C).
