@@ -51,18 +51,20 @@ theories/logrel/definition.v
 
 theories/logrel/lib/small_helpers.v
 
-theories/logrel/lemmas/casts_compat.v
+theories/logrel/lemmas/compat_cast_help.v
 theories/logrel/lemmas/casts_superfluous.v
-theories/logrel/lemmas/fundamental.v
-
-# wrapper
-theories/maps/wrapper/definition.v
-theories/maps/wrapper/lemmas.v
+theories/logrel/lemmas/fun_dyn_embedding.v
 
 # grad typing cont
 theories/grad_lang/typing.v
 theories/grad_lang/contexts.v
 theories/grad_lang/labels.v
 
-# casts compat
+# # casts compat
 theories/logrel/lemmas/compats.v
+theories/logrel/lemmas/fun_grad_into_dyn.v
+
+theories/logrel/adequacy.v
+
+# linker
+theories/maps/linker/components.v

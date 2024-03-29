@@ -43,6 +43,13 @@ Inductive typed (Γ : list type) : expr → type → Prop :=
 
 where "Γ ⊢ e : τ" := (typed Γ e τ).
 
+Lemma typed_app_r Γ Γ' e τ (H : typed Γ e τ) :
+  typed (Γ ++ Γ') e τ.
+Proof.
+  induction H; try by econstructor.
+  econstructor. rewrite (lookup_app_l Γ Γ' x); eauto. by eapply lookup_lt_Some.
+Qed.
+
 From main.grad_lang Require Import contexts.
 
 Inductive typed_ctx_item :
@@ -118,3 +125,32 @@ Inductive typed_ctx : ctx → list type → type → list type → type → Prop
 Lemma typed_ctx_typed K Γ τ Γ' τ' e :
   typed Γ e τ → typed_ctx K Γ τ Γ' τ' → typed Γ' (fill_ctx K e) τ'.
 Proof. induction 2; simpl; eauto using typed_ctx_item_typed. Qed.
+
+Lemma typed_ctx_item_app_r Ci Γ τ Γ' τ' τs :
+  typed_ctx_item Ci Γ τ Γ' τ' →
+  typed_ctx_item Ci (Γ ++ τs) τ (Γ' ++ τs) τ'.
+Proof.
+  intro H. destruct H; try by econstructor; (try done);
+    (try change (?τ :: Γ ++ τs) with ((τ :: Γ) ++ τs)); apply typed_app_r; auto.
+Qed.
+
+Lemma typed_ctx_app_r C Γ τ Γ' τ' τs :
+  typed_ctx C Γ τ Γ' τ' →
+  typed_ctx C (Γ ++ τs) τ (Γ' ++ τs) τ'.
+Proof.
+  intro H. induction H.
+  - constructor.
+  - econstructor. 2: eapply IHtyped_ctx.
+    by apply typed_ctx_item_app_r.
+Qed.
+
+Lemma typed_ctx_compose Γ1 Γ2 Γ3 K12 K23 τ1 τ2 τ3 :
+  typed_ctx K23 Γ2 τ2 Γ3 τ3 →
+  typed_ctx K12 Γ1 τ1 Γ2 τ2 →
+  typed_ctx (K23 ++ K12) Γ1 τ1 Γ3 τ3.
+Proof.
+  revert K12 Γ1 Γ2 Γ3 τ1 τ2 τ3; induction K23 => K12 Γ Γ2 Γ3 τ1 τ2 τ3; simpl.
+  - by inversion 1; subst.
+  - intros Htc1 Htc2. inversion Htc1; subst.
+    econstructor; last eapply IHK23; eauto.
+Qed.

@@ -28,7 +28,7 @@ Section expr.
     | grad_lang.definition.Error ℓ => Error ℓ
     | Ascribe ℓ τ1 τ2 e => match consistency_decision τ1 τ2 with
                          | inl Pc => App ν (of_val $ cast ℓ τ1 τ2 Pc) (trns e)
-                         | inr _ => Lit LitUnit
+                         | inr _ => App ν (Lit LitUnit) (trns e)
                          end
     end.
 
@@ -73,5 +73,12 @@ Section contexts.
 
   Definition trns_ctx (C : grad_lang.contexts.ctx) : ctx :=
     trns_ctx_item <$> C.
+
+  Lemma trns_fill_ctx_item Ci e :
+    ⌊ grad_lang.contexts.fill_ctx_item Ci e ⌋ = fill_ctx_item (trns_ctx_item Ci) ⌊ e ⌋.
+  Proof. destruct Ci; eauto. simpl. destruct (consistency_decision τ1 τ2); auto. Qed.
+  Lemma trns_fill_ctx C e :
+    ⌊ grad_lang.contexts.fill_ctx C e ⌋ = fill_ctx (trns_ctx C) ⌊ e ⌋.
+  Proof. induction C; auto. by rewrite /= -IHC trns_fill_ctx_item. Qed.
 
 End contexts.

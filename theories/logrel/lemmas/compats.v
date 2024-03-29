@@ -116,8 +116,6 @@ Proof.
   iApply H2; auto. eapply le_permissive_trans'; eauto. eapply disj_le2.
 Qed.
 
-Notation "L ⋎ L'" := (disj L L') (at level 5).
-
 Lemma compat_if (Γ : list type) (L1 L2 L3 : LabelRel) e0 e0' e1 e1' e2 e2' κ κ' τ
   (H0 : open_exprel_typed Γ L1 e0 e0' (Base Bool))
   (H1 : open_exprel_typed Γ L2 e1 e1' τ)
@@ -211,7 +209,7 @@ Proof.
     iNext. by simpl; auto.
 Qed.
 
-From main.logrel.lemmas Require Import casts_compat.
+From main.logrel.lemmas Require Import compat_cast_help.
 
 Section compat_cast.
 

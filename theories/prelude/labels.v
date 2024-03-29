@@ -25,11 +25,15 @@ Proof. intros. by eapply transitivity. Qed.
 Definition PermitNone : LabelRel := fun _ _ => False.
 (* Notation "∅" := (PermitNone). *)
 
-Definition PermitAll : LabelRel := fun _ _ => False.
+Instance empty_labelrel : Empty LabelRel := PermitNone.
+
+Definition PermitAll : LabelRel := fun _ _ => True.
 (* Notation "#" := (PermitAll). *)
 
 Definition disj (L1 L2 : LabelRel) : LabelRel :=
   fun ℓ ℓ' => L1 ℓ ℓ' ∨ L2 ℓ ℓ'.
+
+Notation "L ⋎ L'" := (disj L L') (at level 5).
 
 Definition unary_conj (L : label → Prop) : LabelRel :=
   fun ℓ ℓ' => L ℓ ∧ L ℓ'.
@@ -40,6 +44,10 @@ Proof. intros ℓ ℓ' H'. destruct H'. split; by eapply H. Qed.
 
 Definition elemhood (ℓs : listset label) : label → Prop :=
   fun ℓ => ℓ ∈ ℓs.
+
+Lemma le_permissive_same L : le_permissive L L.
+Proof. intros x x'; naive_solver. Qed.
+
 
 (* Lemma disj_union (ℓs ℓs' : listset label) : *)
 (*   equiv_LabelRel (disj (unary_conj (fun ℓ => ℓ ∈ ℓs)) (unary_conj (fun ℓ => ℓ ∈ ℓs'))) *)

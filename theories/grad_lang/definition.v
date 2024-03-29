@@ -15,7 +15,7 @@ Inductive expr :=
   | If (e0 e1 e2 : expr)
   | BinOp (binop : bin_op) (e1 e2 : expr)
   (* functions *)
-  | Var (v : var)
+  | Var (v : nat)
   | Lam (e : expr)
   | App (e1 e2 : expr)
   (* sums *)
@@ -34,10 +34,6 @@ Inductive expr :=
   (* We want translation from surface to cast calculus to be definable without typing derivation... *)
   | Ascribe (ℓ : label) (τ1 τ2 : type) (e : expr).
 
-Inductive typing (Γ : list type) : expr → type → Prop :=
-  | Var_typed x τ : Γ !! x = Some τ → typing Γ (Var x) τ
-  | Ascribe_typed ℓ τ1 τ2 e (Hc : consistency τ1 τ2) (H : typing Γ e τ1) :
-      typing Γ (Ascribe ℓ τ1 τ2 e) τ2.
   (* | Unit_typed : Γ ⊢ₙₒ Lit (LitUnit) : TUnit *)
   (* | Bool_typed b : Γ ⊢ₙₒ Lit (LitBool b) : TBool *)
   (* | Int_typed z : Γ ⊢ₙₒ Lit (LitInt z) : TInt *)

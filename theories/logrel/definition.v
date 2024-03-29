@@ -136,33 +136,18 @@ Lemma open_exprel_typed_weaken (L L' : LabelRel) (H : le_permissive L L')
   open_exprel_typed Γ L e e' τ → open_exprel_typed Γ L' e e' τ.
 Proof. intros. intros Δ HL'Δ. apply H0. by eapply le_permissive_trans'. Qed.
 
-
-
-  (*  Lemma open_exprel_typed_nil τ e e' : (⊢ exprel_typed τ e e') -> open_exprel_typed [] e e' τ. *)
-  (* Proof. iIntros (Hee' vs vs') "Hvv'". destruct vs, vs'; auto. asimpl. iApply Hee'. Qed. *)
-
-  (* Lemma open_exprel_typed_nil' τ e e' : open_exprel_typed [] e e' τ → (⊢ exprel_typed τ e e'). *)
-  (* Proof. rewrite /open_exprel_typed. iIntros (Hee'). iDestruct (Hee' [] []) as "H". asimpl. by iApply "H". Qed. *)
-
-  (* Definition ctx_item_rel_typed (Ci Ci' : ctx_item) Γ τ Γ' τ' := *)
-  (*   ∀ e e' (pe : expr_scoped (length Γ) e) (pe' : expr_scoped (length Γ) e'), open_exprel_typed Γ e e' τ → open_exprel_typed Γ' (fill_ctx_item Ci e) (fill_ctx_item Ci' e') τ'. *)
-
-  (* Definition ctx_rel_typed (C C' : ctx) Γ τ Γ' τ' := *)
-  (*   ∀ e e' (pe : expr_scoped (length Γ) e) (pe' : expr_scoped (length Γ) e'), open_exprel_typed Γ e e' τ → open_exprel_typed Γ' (fill_ctx C e) (fill_ctx C' e') τ'. *)
-
-
-
-  (* Definition valrel_unknown_pre Δ (Ψ : val -d> val -d> siProp) : *)
-  (*   val -d> val -d> siProp := *)
-  (*   λ v v', (∃ S : shape, match S with *)
-  (*                         | S_Base b => match b with *)
-  (*                                      | Unit => unit_rel v v' *)
-  (*                                      | Bool => bool_rel v v' *)
-  (*                                      | Int => int_rel v v' *)
-  (*                                      end *)
-  (*                         | S_Bin bin => match bin with *)
-  (*                                       | Product => prod_rel (later_rfn Ψ) (later_rfn Ψ) v v' *)
-  (*                                       | Sum => sum_rel (later_rfn Ψ) (later_rfn Ψ) v v' *)
-  (*                                       | Arrow => (arrow_rel G_YesPlz Ψ Ψ Δ) v v' *)
-  (*                                       end *)
-  (*                        end)%I. *)
+Lemma open_exprel_typed_app_ctx Γ' (L : LabelRel)
+  (Γ : list type) (e e' : expr) (He : Closed_n (length Γ) e) (He' : Closed_n (length Γ) e') (τ : type) :
+  open_exprel_typed Γ L e e' τ → open_exprel_typed (Γ ++ Γ') L e e' τ.
+Proof.
+  intros. intros Δ HL'Δ.
+  iIntros (vsws vsws') "H".
+  iDestruct (big_sepL3_length with "H") as "[%eq1 %eq2]". repeat rewrite app_length in eq1 eq2.
+  rewrite -(take_drop (length Γ) vsws). rewrite -(take_drop (length Γ) vsws').
+  iDestruct (big_sepL3_app_inv with "H") as "[Hint Htrash]".
+  { left. split; repeat rewrite firstn_length_le; try lia. }
+  repeat rewrite fmap_app subst_list_app fmap_length firstn_length_le; try lia.
+  assert (bf : ∀ e n (H : Closed_n n e) σ σ', e.[upn n σ >> σ'] = e.[σ']).
+  { intros. replace e0.[upn n σ >> σ'] with e0.[upn n σ].[σ'] by by asimpl. by rewrite H0. } repeat rewrite bf; auto.
+  by iApply (H with "Hint").
+Qed.

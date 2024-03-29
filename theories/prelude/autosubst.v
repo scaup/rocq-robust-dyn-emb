@@ -97,6 +97,13 @@ Section Autosubst_Lemmas.
   (*   - by asimpl. *)
   (* Qed. *)
 
+  Lemma subst_list_app vs vs' : subst_list (vs ++ vs') = (upn (length vs) (subst_list vs')) >> (subst_list vs).
+  Proof.
+    induction vs.
+    - by asimpl.
+    - simpl. rewrite IHvs. by asimpl.
+  Qed.
+
   Lemma subst_list_snoc vs v : subst_list (vs ++ [v]) = (upn (length vs) (v .: ids)) >> (subst_list vs).
   Proof.
     induction vs.
