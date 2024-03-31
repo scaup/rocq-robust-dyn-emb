@@ -10,12 +10,13 @@ From iris.proofmode Require Import tactics.
 Section casts_superfluous.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
+  Context (ℓ : label).
 
   Lemma cast_upwards_val_superfluous_r (τ : type) L :
     ⊢ ∀ (dir : direction),
        (∀ v v', valrel_typed τ L v v' -∗
                 exprel_typed τ L (of_val v)
-                                 (AppAn (of_val $ cast_upwards ν τ dir) (of_val v'))).
+                                 (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v'))).
   Proof.
     iInduction τ as [ B | const | asdf] "IH";
       iIntros (dir); iIntros (v v') "#Hvv'"; rfn_steps.
@@ -76,7 +77,7 @@ Section casts_superfluous.
   Lemma cast_upwards_val_superfluous_l (τ : type) L :
     ⊢ ∀ (dir : direction),
        (∀ v v', valrel_typed τ L v v' -∗
-                exprel_typed τ L (AppAn (of_val $ cast_upwards ν τ dir) (of_val v))
+                exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v))
                                  (of_val v')).
   Proof.
     iInduction τ as [ B | const | asdf] "IH";
@@ -130,8 +131,8 @@ Section casts_superfluous.
   Lemma cast_upwards_val_superfluous_lr (τ : type) L :
     ⊢ ∀ (dir : direction),
        (∀ v v', valrel_typed τ L v v' -∗
-                exprel_typed τ L (AppAn (of_val $ cast_upwards ν τ dir) (of_val v))
-                                 (AppAn (of_val $ cast_upwards ν τ dir) (of_val v'))).
+                exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v))
+                                 (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v'))).
   Proof.
     iInduction τ as [ B | const | asdf] "IH";
       iIntros (dir); iIntros (v v') "#Hvv'"; rfn_steps.
@@ -181,7 +182,7 @@ Section casts_superfluous.
     ⊢ ∀ (dir : direction),
        (∀ e e', exprel_typed τ L e e' -∗
                 exprel_typed τ L e
-                                 (AppAn (of_val $ cast_upwards ν τ dir) e')).
+                                 (AppAn (of_val $ cast_upwards ℓ τ dir) e')).
   Proof.
     iIntros (dir e e') "Hee'".
     iApply (rfn_bind' [] _ [AppRCtx _ _] with "Hee'"). iApply cast_upwards_val_superfluous_r.
@@ -190,7 +191,7 @@ Section casts_superfluous.
   Lemma cast_upwards_superfluous_l (τ : type) L :
     ⊢ ∀ (dir : direction),
        (∀ e e', exprel_typed τ L e e' -∗
-                exprel_typed τ L (AppAn (of_val $ cast_upwards ν τ dir) e) e').
+                exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) e) e').
   Proof.
     iIntros (dir e e') "Hee'".
     iApply (rfn_bind' [AppRCtx _ _] _ [] with "Hee'"). iApply cast_upwards_val_superfluous_l.
@@ -199,7 +200,7 @@ Section casts_superfluous.
   Lemma cast_upwards_superfluous_lr (τ : type) L :
     ⊢ ∀ (dir : direction),
        (∀ e e', exprel_typed τ L e e' -∗
-                exprel_typed τ L (AppAn (of_val $ cast_upwards ν τ dir) e) (AppAn (of_val $ cast_upwards ν τ dir) e')).
+                exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) e) (AppAn (of_val $ cast_upwards ℓ τ dir) e')).
   Proof.
     iIntros (dir e e') "Hee'".
     iApply (rfn_bind' [AppRCtx _ _] _ [AppRCtx _ _] with "Hee'"). iApply cast_upwards_val_superfluous_lr.

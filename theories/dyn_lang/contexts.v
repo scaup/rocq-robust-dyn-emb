@@ -50,6 +50,9 @@ Notation ctx := (list ctx_item).
 Definition fill_ctx (C : ctx) (e : expr) : expr :=
  foldr fill_ctx_item e C.
 
+Lemma fill_ctx_app e K K' : fill_ctx K' (fill_ctx K e) = fill_ctx (K' ++ K) e.
+Proof. revert K. induction K' => K; simpl; auto. by rewrite IHK'. Qed.
+
 (*   Inductive typed_ctx_item : *)
 (*       ctx_item → list type → type → list type → type → Prop := *)
 (*     | TP_CTX_Lam Γ τ τ' : *)

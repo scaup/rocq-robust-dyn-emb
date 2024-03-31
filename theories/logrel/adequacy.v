@@ -10,7 +10,7 @@ Definition RefineL (L : LabelRel) (e e' : expr) : Prop :=
   ((∃ v, rtc step e (of_val v)) → (∃ v', rtc step e' (of_val v'))) ∧
   (∀ ℓ, rtc step e (Error ℓ) → ∃ ℓ', L ℓ ℓ' ∧ rtc step e' (Error ℓ')).
 
-Lemma logrel_adequecy L e e' τ
+Lemma logrel_adequacy L e e' τ
   (H : open_exprel_typed [] L e e' τ) :
     RefineL L e e'.
 Proof.
@@ -33,14 +33,10 @@ Proof.
     exists ℓ'. split; auto. apply rtc_step_step_ne_to_error. eauto.
 Qed.
 
-Definition comb_trans_lblrel (L L' : LabelRel) : LabelRel :=
-  fun ℓ1 ℓ3 => ∃ ℓ2, L ℓ1 ℓ2 ∧ L' ℓ2 ℓ3.
-
-Notation "L ∘ L'" := (comb_trans_lblrel L L').
 
 Lemma refineL_trans (L L' : LabelRel) e1 e2 e3
   (H12 : RefineL L e1 e2) (H23 : RefineL L' e2 e3) :
-  RefineL (L ∘ L') e1 e3.
+  RefineL (comb_trans_lblrel L L') e1 e3.
 Proof.
   split.
   - destruct H12 as [R12 _]; destruct H23 as [R23 _].

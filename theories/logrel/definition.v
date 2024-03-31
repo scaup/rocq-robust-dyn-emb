@@ -124,13 +124,6 @@ Definition open_exprel_typed (Γ : list type) (L : LabelRel) (e e' : expr) (τ :
       big_sepL3 (fun τ v v' => valrel_typed τ Δ v v') Γ vs vs' ⊢
           exprel_typed τ Δ e.[subst_list (of_val <$> vs)] e'.[subst_list (of_val <$> vs')].
 
-From main.dyn_lang Require Import contexts.
-
-Definition ctx_rel_typed (L : LabelRel) (C C' : ctx)
-  (Γ : list type)(*hole*) (τ : type)(*hole*) (Γout : list type)(*outer*) (τout : type)(*outer*) : Prop :=
-  ∀ L' (H : le_permissive L L') e e' (Hee' : open_exprel_typed Γ L' e e' τ),
-      open_exprel_typed Γout L' (fill_ctx C e) (fill_ctx C' e') τout.
-
 Lemma open_exprel_typed_weaken (L L' : LabelRel) (H : le_permissive L L')
   (Γ : list type) (e e' : expr) (τ : type) :
   open_exprel_typed Γ L e e' τ → open_exprel_typed Γ L' e e' τ.
@@ -151,3 +144,29 @@ Proof.
   { intros. replace e0.[upn n σ >> σ'] with e0.[upn n σ].[σ'] by by asimpl. by rewrite H0. } repeat rewrite bf; auto.
   by iApply (H with "Hint").
 Qed.
+
+From main.dyn_lang Require Import contexts.
+
+Definition ctx_rel_typed (L : LabelRel) (C C' : ctx)
+  (Γ : list type)(*hole*) (τ : type)(*hole*) (Γout : list type)(*outer*) (τout : type)(*outer*) : Prop :=
+  ∀ L' (H : le_permissive L L') e e' (Hee' : open_exprel_typed Γ L' e e' τ),
+      open_exprel_typed Γout L' (fill_ctx C e) (fill_ctx C' e') τout.
+
+Lemma ctx_rel_typed_weaken C C' (L L' : LabelRel) (H : le_permissive L L')
+  (Γ1 Γ2 : list type) (τ1 τ2 : type) :
+  ctx_rel_typed L C C' Γ1 τ1 Γ2 τ2 → ctx_rel_typed L' C C' Γ1 τ1 Γ2 τ2.
+Proof.
+  intros. intros Δ HL'Δ e e' Hee'. apply H0; auto. eapply le_permissive_trans; eauto. Qed.
+
+(* Lemma open_exprel_typed_compose L12 L23 Γ1 Γ2 Γ3 C12 C12' C23 C23' τ1 τ2 τ3 : *)
+(*   ctx_rel_typed L12 C12 C12' Γ1 τ1 Γ2 τ2 → *)
+(*   ctx_rel_typed L23 C23 C23' Γ2 τ2 Γ3 τ3 → *)
+(*   ctx_rel_typed (L23 ⊔ L12) (C23 ++ C12) (C23' ++ C12') Γ1 τ1 Γ3 τ3. *)
+(* Proof. *)
+(*   intros. intros L1' HL1 e e' Hee. *)
+(*   repeat rewrite /fill_ctx foldr_app. *)
+(*   repeat change (foldr fill_ctx_item ?e ?C) with (fill_ctx C e). *)
+(*   apply H0. { intros l l' Hll. apply HL1. by left. } *)
+(*   apply H. { intros l l' Hll. apply HL1. by right. } *)
+(*   auto. *)
+(* Qed. *)

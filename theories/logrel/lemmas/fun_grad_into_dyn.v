@@ -52,7 +52,7 @@ Section fundamental.
     - eapply open_exprel_typed_weaken.
       eauto using compat_case.
       permissive_solver.
-    - destruct (consistency_decision τ1 τ2); [ | by exfalso].
+    - rewrite /cast'. destruct (consistency_decision τ1 τ2); [ | by exfalso].
       eapply open_exprel_typed_weaken.
       eauto using compat_cast.
       permissive_solver.
@@ -103,7 +103,7 @@ Section fundamental.
       eauto using compat_seq, fundamental. permissive_solver'.
     - eapply open_exprel_typed_weaken.
       eauto using compat_seq, fundamental. permissive_solver'.
-    - destruct (consistency_decision τ1 τ2); [ | by exfalso].
+    - rewrite /cast'. destruct (consistency_decision τ1 τ2); [ | by exfalso].
       eapply open_exprel_typed_weaken.
       eauto using compat_cast. permissive_solver'.
   Qed.

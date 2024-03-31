@@ -66,5 +66,18 @@ theories/logrel/lemmas/fun_grad_into_dyn.v
 
 theories/logrel/adequacy.v
 
+theories/prelude/lists.v
+
 # linker
-theories/maps/linker/components.v
+theories/maps/linker/components/common.v
+theories/maps/linker/components/dyn.v
+theories/maps/linker/components/grd.v
+theories/maps/linker/components/agree.v
+theories/maps/linker/components/lemmas.v
+
+theories/maps/linker/definition.v
+
+theories/theorems/imported_wb_innocent.v
+
+
+# theorems

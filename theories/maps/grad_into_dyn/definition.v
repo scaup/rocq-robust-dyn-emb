@@ -26,10 +26,7 @@ Section expr.
     | grad_lang.definition.Snd e => Snd ν (trns e)
     | grad_lang.definition.Pair e1 e2 => Pair (trns e1) (trns e2)
     | grad_lang.definition.Error ℓ => Error ℓ
-    | Ascribe ℓ τ1 τ2 e => match consistency_decision τ1 τ2 with
-                         | inl Pc => App ν (of_val $ cast ℓ τ1 τ2 Pc) (trns e)
-                         | inr _ => App ν (Lit LitUnit) (trns e)
-                         end
+    | Ascribe ℓ τ1 τ2 e => App ν (of_val $ cast' ℓ τ1 τ2) (trns e)
     end.
 
 End expr.
@@ -64,11 +61,11 @@ Section contexts.
     | grad_lang.contexts.CTX_IfR e0 e1 => CTX_IfR ν (trns e0) (trns e1)
     | grad_lang.contexts.CTX_SeqL e2 => CTX_SeqL ν (trns e2)
     | grad_lang.contexts.CTX_SeqR e1 => CTX_SeqR ν (trns e1)
-    | CTX_Ascribe ℓ τ1 τ2 =>
-        (CTX_AppR ν $ match consistency_decision τ1 τ2 with
-                      | inl Pc => (of_val $ cast ℓ τ1 τ2 Pc)
-                      | inr _ => Lit LitUnit
-                      end)
+    | CTX_Ascribe ℓ τ1 τ2 => CTX_AppR ν (of_val $ cast' ℓ τ1 τ2)
+        (* (CTX_AppR ν $ match consistency_decision τ1 τ2 with *)
+        (*               | inl Pc => (of_val $ cast ℓ τ1 τ2 Pc) *)
+        (*               | inr _ => Lit LitUnit *)
+        (*               end) *)
     end.
 
   Definition trns_ctx (C : grad_lang.contexts.ctx) : ctx :=
@@ -76,9 +73,12 @@ Section contexts.
 
   Lemma trns_fill_ctx_item Ci e :
     ⌊ grad_lang.contexts.fill_ctx_item Ci e ⌋ = fill_ctx_item (trns_ctx_item Ci) ⌊ e ⌋.
-  Proof. destruct Ci; eauto. simpl. destruct (consistency_decision τ1 τ2); auto. Qed.
+  Proof. destruct Ci; eauto. Qed.
   Lemma trns_fill_ctx C e :
     ⌊ grad_lang.contexts.fill_ctx C e ⌋ = fill_ctx (trns_ctx C) ⌊ e ⌋.
   Proof. induction C; auto. by rewrite /= -IHC trns_fill_ctx_item. Qed.
+
+  Lemma trns_ctx_app C C' : trns_ctx (C ++ C') = trns_ctx C ++ trns_ctx C'.
+  Proof. by rewrite /trns_ctx fmap_app. Qed.
 
 End contexts.

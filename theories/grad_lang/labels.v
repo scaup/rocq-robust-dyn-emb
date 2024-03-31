@@ -59,6 +59,10 @@ Definition labels_ctx_item (Ci : ctx_item) : listset label :=
 Definition labels_ctx (C : ctx) : listset label :=
   foldr (fun Ci ℓs => labels_ctx_item Ci ∪ ℓs) ∅ C.
 
+Lemma labels_ctx_app C C' :
+  labels_ctx (C ++ C') ≡ labels_ctx C ∪ labels_ctx C'.
+Proof. induction C. rewrite app_nil_l. set_solver. simpl. set_solver. Qed.
+
 (* Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ labels_expr e. *)
 
 Definition InGradExpr (e : expr) : LabelRel :=

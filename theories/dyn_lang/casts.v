@@ -86,5 +86,35 @@ Section casts.
     - destruct bin; asimpl; by repeat rewrite IHconsistency1 IHconsistency2.
   Qed.
 
+  Definition cast' ℓ τ τ' := (match consistency_decision τ τ' with
+                              | inl p => cast ℓ τ τ' p
+                              | inr _ => LitV LitUnit
+                              end).
+
+
+  Lemma cast'_closed ℓ τ1 τ2 : Closed (of_val $ cast' ℓ τ1 τ2).
+  Proof. rewrite /cast'. destruct (consistency_decision τ1 τ2). apply cast_closed. by asimpl. Qed.
+
+
+  Require Import Coq.Logic.JMeq.
+  Require Import Coq.Program.Equality.
+
+  Lemma cast_upwards_rw ℓ τ : cast' ℓ τ Unknown = cast_upwards ℓ τ Normal.
+  Proof.
+    rewrite /cast'.
+    rewrite /cast /cast_pre.
+    destruct (consistency_decision τ Unknown).
+    2:{ exfalso. apply f. econstructor. }
+    dependent destruction c; auto.
+  Qed.
+
+  Lemma cast_downwards_rw ℓ τ : cast' ℓ Unknown τ = cast_upwards ℓ τ Opposite.
+  Proof.
+    rewrite /cast'.
+    rewrite /cast /cast_pre.
+    destruct (consistency_decision τ Unknown).
+    2:{ exfalso. apply f. econstructor. }
+    dependent destruction c; auto.
+  Qed.
 
 End casts.

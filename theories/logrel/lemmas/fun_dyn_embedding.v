@@ -273,4 +273,20 @@ Ltac closed_solver :=
     - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; set_solver.
   Qed.
 
+
+  (* alternatively; we can define logrel at Γ such that arbitrary substitution larger... *)
+  (* or just enforce closedness in logrel; might be more natural.. *)
+
+  Lemma dyn_emb_trns_pres_closed_n e n : Closed_n n e → Closed_n n (⌊ (⌜⌜ e ⌝⌝) ⌋).
+  Proof.
+    revert n.
+    induction e; intros; (try by asimpl); intros σ'; asimpl; (try rewrite decide_True; auto);
+    try by repeat f_equiv;
+        (try by rewrite IHe; [auto | closed_solver]);
+        (try by rewrite IHe0; [auto | closed_solver]);
+        (try by rewrite IHe1; [auto | closed_solver]);
+        (try by rewrite IHe2; [auto | closed_solver]);
+        (try by rewrite IHe3; [auto | closed_solver]).
+  Qed.
+
 End fundamental.

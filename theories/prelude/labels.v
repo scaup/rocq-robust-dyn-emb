@@ -36,11 +36,13 @@ Definition disj (L1 L2 : LabelRel) : LabelRel :=
 Notation "L ⋎ L'" := (disj L L') (at level 5).
 
 Definition unary_conj (L : label → Prop) : LabelRel :=
-  fun ℓ ℓ' => L ℓ ∧ L ℓ'.
+  fun ℓ ℓ' => ℓ = ℓ' ∧ L ℓ ∧ L ℓ'.
+
+Notation diag := unary_conj.
 
 Lemma le_perm_unary_conj L L' (H : ∀ ℓ, L ℓ → L' ℓ) :
   le_permissive (unary_conj L) (unary_conj L').
-Proof. intros ℓ ℓ' H'. destruct H'. split; by eapply H. Qed.
+Proof. rewrite /diag. intros ℓ ℓ' H'. naive_solver. Qed.
 
 Definition elemhood (ℓs : listset label) : label → Prop :=
   fun ℓ => ℓ ∈ ℓs.
@@ -54,3 +56,30 @@ Proof. intros x x'; naive_solver. Qed.
 (*     (unary_conj (fun ℓ => ℓ ∈ ℓs ∪ ℓs')). *)
 (* Proof. *)
 (*   intros ℓ ℓ'. split; intro H. eauto. *)
+
+
+Instance le_permissive_sqsubseteq : SqSubsetEq LabelRel :=
+  le_permissive.
+Instance le_permissive_equiv : Equiv LabelRel :=
+  equiv_LabelRel.
+Instance le_permissive_join : Join LabelRel :=
+  disj.
+(* Instance le_permissive_meet : Meet LabelRel := *)
+(*   disj. *)
+
+Instance le_permissive_top : Top LabelRel :=
+  PermitAll.
+
+Instance le_permissive_bot : Bottom LabelRel :=
+  PermitNone.
+
+Definition comb_trans_lblrel (L L' : LabelRel) : LabelRel :=
+  fun ℓ1 ℓ3 => ∃ ℓ2, L ℓ1 ℓ2 ∧ L' ℓ2 ℓ3.
+
+Notation "L ∘ L'" := (comb_trans_lblrel L L').
+
+Lemma le_meet_l (L1 L2 : LabelRel) : L1 ⊑ (L1 ⊔ L2).
+Proof. intros ℓ ℓ' H. rewrite /join /le_permissive_join. by left. Qed.
+
+Lemma le_meet_r (L1 L2 : LabelRel) : L2 ⊑ (L1 ⊔ L2).
+Proof. intros ℓ ℓ' H. rewrite /join /le_permissive_join. by right. Qed.
