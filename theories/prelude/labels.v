@@ -38,11 +38,30 @@ Notation "L ⋎ L'" := (disj L L') (at level 5).
 Definition unary_conj (L : label → Prop) : LabelRel :=
   fun ℓ ℓ' => ℓ = ℓ' ∧ L ℓ ∧ L ℓ'.
 
+Lemma unary_conj_id H ℓ : H ℓ → unary_conj H ℓ ℓ.
+Proof. intro. by split. Qed.
+
+Ltac delta_solver :=
+  lazymatch goal with
+  | HΔ : le_permissive _ ?Δ |- ?Δ _ _ =>
+      (apply HΔ, unary_conj_id; set_solver)
+      (* (apply HΔ, unary_conj_id; rewrite /elemhood; set_solver) *)
+  | _ => fail "ads"
+  end.
+
 Notation diag := unary_conj.
 
 Lemma le_perm_unary_conj L L' (H : ∀ ℓ, L ℓ → L' ℓ) :
   le_permissive (unary_conj L) (unary_conj L').
 Proof. rewrite /diag. intros ℓ ℓ' H'. naive_solver. Qed.
+
+Ltac permissive_solver :=
+  lazymatch goal with
+  | HΔ : le_permissive _ ?Δ |- le_permissive _ ?Δ =>
+      (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; set_solver)
+      (* (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver) *)
+  | _ => fail "ads"
+  end.
 
 Definition elemhood (ℓs : listset label) : label → Prop :=
   fun ℓ => ℓ ∈ ℓs.

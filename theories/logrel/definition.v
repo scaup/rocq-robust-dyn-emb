@@ -5,13 +5,8 @@ From main.logrel.lib Require Import weakestpre rfn.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
 
 Section logrel.
-
-  (* Context {ν : label} {Hν : NeverOccurs ν}. *)
-
-  (* Definition pairs := list (prod label label). *)
 
   Definition unit_rel : val -d> val -d> siProp :=
     λ v v', (match v, v' with
@@ -44,13 +39,10 @@ Section logrel.
             | _, _ => False
             end)%I.
 
-  (* Inductive guarded := G_YesPlz | G_NoThanks. *)
-
   Definition arrow_rel (F1 F2 : siProp -> siProp) (Φ1 Φ2 : val -d> val -d> siProp) (L2 : label -> label -> Prop) :
     val -d> val -d> siProp :=
     λ v v', (match v, v' with
             | LamV e, LamV e' => (F1 (∀ w w', Φ1 w w' -∗ F2 (rfn Φ2 L2 e.[of_val w/] e'.[of_val w'/])))
-                  (* end) (∀ w w', ▷ Φ1 w w' -∗ rfn Φ2 L2 (AppAn (Lam e) (of_val w)) (AppAn (Lam e') (of_val w')))) *)
             | _, _ => False
             end)%I.
 

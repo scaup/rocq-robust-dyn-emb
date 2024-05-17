@@ -10,18 +10,12 @@ Section rfn.
   Definition val_lift_r : (val -d> val -d> siProp) -d> val -d> expr -d> siProp :=
     λ Φ v e', (∃ v', ⌜ rtc step_ne e' (of_val v') ⌝ ∗ Φ v v')%I.
 
-  (* Definition lbl_lift_r : (label -> label -> Prop) -d> label -d> expr -d> siProp := *)
-  (* Definition lbl_lift_r : (label -d> label -d> iProp) -> label -> expr -> Prop := *)
   Definition lbl_lift_r : (label -> label -> Prop) -> label -> expr -> Prop :=
     λ L ℓ e', ((∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ')).
 
   Definition rfn : (val -d> val -d> siProp) -d> (label -> label -> Prop) -d> expr -d> expr -d> siProp :=
     λ Φ L e e', wp (λ v, val_lift_r Φ v e')%I
                    (λ ℓ, ⌜ lbl_lift_r L ℓ e' ⌝)%I e.
-
-  (* Definition rfn : (val -d> val -d> siProp) -d> (label -d> label -d> siProp) -d> expr -d> expr -d> siProp := *)
-  (*   λ Φ L e e', wp (λ v, ∃ v', ⌜ rtc step_ne e' (of_val v') ⌝ ∗ Φ v v')%I *)
-  (*               (λ ℓ, ∃ t' ℓ', ⌜ rtc step_ne e' t' ⌝ ∗ ⌜ faulty t' ℓ' ⌝ ∗ L ℓ ℓ')%I e. *)
 
   Lemma eval_stable_val_lift_r Φ v e e' (H : rtc step_ne e e') :
     val_lift_r Φ v e ≡ val_lift_r Φ v e'.

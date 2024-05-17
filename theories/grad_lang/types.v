@@ -52,108 +52,11 @@ Definition to_ground (τ : type) : option shape :=
 Definition base_lit_type (b : base_lit) : type :=
   Base (base_lit_base b).
 
-(* On their own *)
+From main.prelude Require Import autosubst.
 
-(* B => B *)
-(* ? => ? *)
-(* G => ? *)
-(* ? => G *)
-
-(* By mutual induction on type *)
-
-(* τ => ? (τ ≠ G, τ ≠ ?) *)
-(* ? => τ (τ ≠ G, τ ≠ ?) *)
-
-(* τ1 → τ2 => τ1' → τ2' *)
-
-
-
-
-(* Inductive cast_structure : type → type → Set := *)
-(*   | C_U_U : cast_structure Unknown Unknown *)
-(*   | C_G_U G (s : shape) (H : to_ground G = Some s) : cast_structure G Unknown *)
-(*   | C_U_G G (s : shape) (H : to_ground G = Some s) : cast_structure Unknown G *)
-(*   | C_G_G G (s : shape) (H : to_ground G = Some s) : cast_structure G G *)
-
-(*   | C_Bin τ1 τ1' τ2 bin G (s : shape) (H : to_ground G = Some s) : cast_structure G G *)
-
-(* Instance type_eq : EqDecision type. *)
-(* Proof. *)
-(*   intros τ. induction τ; intros τ'. *)
-(*   destruct τ'; solve_decision. *)
-
-
-
-(* Inductive type := *)
-(*   | Unit *)
-(*   | Bool *)
-(*   | Int *)
-(*   | Arrow (τ1 τ2 : type) *)
-(*   | Sum (τ1 τ2 : type) *)
-(*   | Product (τ1 τ2 : type) *)
-(*   | Unknown *)
-(* . *)
-
-(* Instance type_eq : EqDecision type. *)
-(* Proof. solve_decision. Qed. *)
-
-(* Inductive base := *)
-(*   | B_Unit *)
-(*   | B_Bool *)
-(*   | B_Int. *)
-
-(* Definition base_type (B : base) : type := *)
-(*   match B with *)
-(*   | B_Unit => Unit *)
-(*   | B_Bool => Bool *)
-(*   | B_Int => Int *)
-(*   end. *)
-
-(* Inductive bin_const := *)
-(*   | BC_Arrow *)
-(*   | BC_Sum *)
-(*   | BC_Product. *)
-
-(* Definition bin_type (bin : bin_const) τ1 τ2 : type := *)
-(*   match bin with *)
-(*   | BC_Arrow => Arrow τ1 τ2 *)
-(*   | BC_Sum => Sum τ1 τ2 *)
-(*   | BC_Product => Product τ1 τ2 *)
-(*   end. *)
-
-(* Inductive consistency : type → type → Set := *)
-(*   | C_Arb_Unknown τ : consistency τ Unknown *)
-(*   | C_Unknown_Arb τ : consistency Unknown τ *)
-(*   | C_Base_Base B : consistency (base_type B) (base_type B) *)
-(*   | C_Bin_Bin bin τ1 τ1' τ2 τ2' (H1 : consistency τ1 τ1') (H2 : consistency τ2 τ2') : *)
-(*           consistency (bin_type bin τ1 τ2) (bin_type bin τ1' τ2'). *)
-
-
-
-(* (* Inductive base := *) *)
-(* (*   | Unit *) *)
-(* (*   | Bool *) *)
-(* (*   | Int. *) *)
-
-(* (* Inductive bin_const := *) *)
-(* (*   | Arrow *) *)
-(* (*   | Sum *) *)
-(* (*   | Product. *) *)
-
-(* (* Inductive type := *) *)
-(* (*   | Base (B : base) *) *)
-(* (*   | Bin (bin : bin_const) (τ1 τ2 : type) *) *)
-(* (*   | Unknown. *) *)
-
-(* (* Inductive consistency : relation type := *) *)
-(* (*   | C_Arb_Unknown τ : consistency τ Unknown *) *)
-(* (*   | C_Unknown_Arb τ : consistency Unknown τ *) *)
-(* (*   | C_Base_Base B : consistency (Base B) (Base B) *) *)
-(* (*   | C_Bin_Bin bin τ1 τ1' τ2 τ2' *) *)
-(* (*         (H1 : consistency τ1 τ1') (H2 : consistency τ2 τ2') : *) *)
-(* (*           consistency (Bin bin τ1 τ2) (Bin bin τ1' τ2'). *) *)
-
-(* (* Instance type_eq : EqDecision type. *) *)
-(* (* Proof. *) *)
-(* (*   intros τ. induction τ; intros τ'. *) *)
-(* (*   destruct τ'; solve_decision. *) *)
+Ltac closed_solver :=
+  lazymatch goal with
+  | H : Closed_n _ _ |- Closed_n _ _ => intros σ; specialize (H σ); simpl in H; by simplify_eq
+  | |- Closed_n _ _ => fail "goal detected suc"
+  | _ => fail "wrong goal"
+  end.

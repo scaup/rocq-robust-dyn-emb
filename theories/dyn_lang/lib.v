@@ -1,9 +1,6 @@
 From main.prelude Require Import imports autosubst.
 From main.dyn_lang Require Import definition.
 
-(* Definition AppAn {ν : label} {Hν : NeverOccurs ν} (e e' : expr) := *)
-(*   App ν e e'. *)
-
 Section anon.
 
   Context {ν : label}.
@@ -72,65 +69,3 @@ Section lib.
     end.
 
 End lib.
-
-
-(* Ltac head_step_solver := *)
-(*   econstructor; *)
-(*     by (repeat ((try simplify_option_eq); (try rewrite to_of_val))). *)
-
-(* Ltac naive_step_solver := *)
-(*   apply (SNE_Normal []); head_step_solver. *)
-
-(* Lemma stepK (K : ectx) {e t t'} e' : *)
-(*   e = fill K t → *)
-(*   head_step_ne t t' → *)
-(*   e' = fill K t' → *)
-(*   step_ne e e'. *)
-(* Proof. intros. simplify_eq. by constructor. Qed. *)
-
-(* Instance decision_eq : EqDecision shape. *)
-(* Proof. solve_decision. Qed. *)
-
-(* Section lib_lemmas. *)
-
-(*   Context {ν : label} {Hν : NeverOccurs ν}. *)
-
-(*   Lemma bimap_prod_eval (ℓ : label) (f1 f2 : val) (v1 v2 : val) : *)
-(*     nsteps step_ne 5 *)
-(*       (App ℓ (of_val $ bimap_prod ℓ f1 f2) (Pair (of_val v1) (of_val v2))) *)
-(*       (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2))). *)
-(*   Proof. *)
-(*     eapply nsteps_l. naive_step_solver. *)
-(*     eapply nsteps_l. *)
-(*     { eapply (stepK [AppRCtx ν _]). asimpl. *)
-(*       change (Lam ?e) with (of_val $ LamV e). eauto. *)
-(*       head_step_solver. eauto. } *)
-(*     simpl. *)
-(*     eapply nsteps_l. naive_step_solver. *)
-(*     simpl. *)
-(*     eapply nsteps_l. *)
-(*     { eapply (stepK [AppRCtx ν _]). asimpl. *)
-(*       change (Lam ?e) with (of_val $ LamV e). eauto. *)
-(*       head_step_solver. eauto. } *)
-(*     eapply nsteps_l. naive_step_solver. *)
-(*     asimpl; apply nsteps_O. *)
-(*   Qed. *)
-
-(*   Lemma bimap_prod_gauge (ℓ : label) (f1 f2 : val) v : *)
-(*     (shape_val v ≠ (S_Bin Product) ∧ faulty (App ℓ (of_val $ bimap_prod ℓ f1 f2) (of_val v)) ℓ) *)
-(*     ∨ *)
-(*     (∃ v1 v2, v = PairV v1 v2 ∧ *)
-(*               nsteps step_ne 5 *)
-(*                  (App ℓ (of_val $ bimap_prod ℓ f1 f2) (of_val v)) *)
-(*                  (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2)))). *)
-(*   Proof. *)
-(*     destruct (decide (shape_val v = S_Bin Product)). *)
-(*     - right. destruct v; (try destruct b); inversion e. *)
-(*       exists v1, v2.  split; auto. apply bimap_prod_eval. *)
-(*     - left. split; auto. *)
-
-
-(*   Lemma bimap_sum_eval (ℓ : label) (f1 f2 : val) (v1 v2 : val) : *)
-(*     nsteps step_ne 5 *)
-(*       (App ℓ (of_val $ bimap_prod ℓ f1 f2) (Pair (of_val v1) (of_val v2))) *)
-(*       (Pair (AppAn (of_val f1) (of_val v1)) (AppAn (of_val f2) $ (of_val v2))). *)

@@ -12,7 +12,7 @@ Section casts_compat.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  Ltac rfn_faulty := (iApply rfn_faulty; [ by faulty_solver| by faulty_solver| auto ]).
+  (* Ltac rfn_faulty := (iApply rfn_faulty; [ by faulty_solver| by faulty_solver| auto ]). *)
 
   Lemma compat_cast_upwards_val L ℓ ℓ' (HL : L ℓ ℓ') (τ : type) :
     ⊢ ∀ (dir : direction), match dir with
@@ -26,7 +26,7 @@ Section casts_compat.
                                       (AppAn (of_val $ cast_upwards ℓ' τ Opposite) (of_val v')))
     end.
   Proof.
-    iInduction τ as [ B | const | asdf] "IH"; iIntros (dir).
+    iInduction τ as [ B | const | ] "IH"; iIntros (dir).
     - destruct dir; simpl; iIntros (v v') "Hvv'".
       + rfn_steps. iNext. rfn_val.
         rewrite valrel_unknown_unfold.
@@ -56,17 +56,17 @@ Section casts_compat.
             dvals v v'; auto; try rfn_faulty.
             rewrite /valrel_unknown_pre /arrow_rel. iNext.
             iSpecialize ("Hvv'" with "Hww'"). rfn_steps.
-            rfn_bind "Hvv'". repeat iNext; iIntros (x x') "Hxx'"; rfn_steps; rfn_val. }
+            rfn_bind. iApply "Hvv'". repeat iNext; iIntros (x x') "Hxx'"; rfn_steps; rfn_val. }
         * destruct dir; repeat rewrite /cast_upwards decide_False; auto; iIntros (v v') "#Hvv'".
           { asimpl. rfn_steps. rfn_val.
             rewrite (valrel_unknown_unfold) /=. repeat iNext.
-            iIntros (w w') "#Hww'". asimpl. rfn_bind_pop'. by iApply "IH".
+            iIntros (w w') "#Hww'". asimpl. rfn_bind_pp. by iApply "IH".
             iIntros (x x') "#Hxx'". dvals v v'; try rfn_faulty.
-            rfn_steps. iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind'. by iApply "Hvv'". iApply "IH1". }
+            rfn_steps. iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind. by iApply "Hvv'". iApply "IH1". }
           { rfn_steps. rfn_val. rewrite (valrel_unknown_unfold) /=. iNext.
-            iIntros (w w') "#Hww'". asimpl. rfn_bind_pop'. iApply ("IH" with "Hww'").
+            iIntros (w w') "#Hww'". asimpl. rfn_bind_pp. iApply ("IH" with "Hww'").
             iIntros (x x') "#Hxx'". dvals v v'; try rfn_faulty.
-            rfn_steps. iNext. iSpecialize ("Hvv'" with "Hxx'"). rfn_bind'. by iApply "Hvv'". iApply "IH1". }
+            rfn_steps. iNext. iSpecialize ("Hvv'" with "Hxx'"). rfn_bind. by iApply "Hvv'". iApply "IH1". }
       + (* sum case *)
         destruct (decide ((τ1 = Unknown) ∧ (τ2 = Unknown))) as [[-> ->] | bbb];
           [ repeat rewrite /= decide_True; auto | repeat rewrite /= decide_False; auto ].
@@ -79,13 +79,13 @@ Section casts_compat.
         * (* τ1 -> τ2 *)
           destruct dir; iIntros (v v') "#Hvv'"; simpl.
           { rfn_steps. dvals v v'; rfn_steps; repeat iNext.
-            - rfn_bind_pop'. by iApply "IH". iIntros (w w') "Hww'".
+            - rfn_bind_pp. by iApply "IH". iIntros (w w') "Hww'".
               rfn_val. rewrite valrel_unknown_unfold. by iNext.
-            - rfn_bind_pop'. by iApply "IH1". iIntros (w w') "Hww'".
+            - rfn_bind_pp. by iApply "IH1". iIntros (w w') "Hww'".
               rfn_val. rewrite valrel_unknown_unfold. by iNext. }
           { rfn_steps. rewrite valrel_unknown_unfold. dvals v v'; try rfn_faulty; rfn_steps; repeat iNext.
-            - rfn_bind_pop'. by iApply "IH". iIntros (w w') "Hww'". rfn_val.
-            - rfn_bind_pop'. by iApply "IH1". iIntros (w w') "Hww'". rfn_val. }
+            - rfn_bind_pp. by iApply "IH". iIntros (w w') "Hww'". rfn_val.
+            - rfn_bind_pp. by iApply "IH1". iIntros (w w') "Hww'". rfn_val. }
       + (* prodcut case *)
         destruct (decide ((τ1 = Unknown) ∧ (τ2 = Unknown))) as [[-> ->] | bbb];
           [ repeat rewrite /= decide_True; auto | repeat rewrite /= decide_False; auto ].
@@ -97,13 +97,13 @@ Section casts_compat.
             rfn_steps. rfn_val. }
         * destruct dir; iIntros (v v') "#Hvv'"; simpl.
           { rfn_steps. dvals v v'; try rfn_faulty. rfn_steps. iDestruct "Hvv'" as "[a b]".
-            rfn_bind_pop'. by iApply "IH". repeat iNext. simpl. iIntros (v v') "Hvv'".
-            rfn_bind_pop'. by iApply "IH1". simpl. iIntros (w w') "Hww'". rfn_val.
+            rfn_bind_pp. by iApply "IH". repeat iNext. simpl. iIntros (v v') "Hvv'".
+            rfn_bind_pp. by iApply "IH1". simpl. iIntros (w w') "Hww'". rfn_val.
             iApply valrel_unknown_unfold. simpl. iSplit; iNext; iFrame. }
           { rfn_steps. rewrite valrel_unknown_unfold. dvals v v'; try rfn_faulty. rfn_steps.
             iDestruct "Hvv'" as "[a b]". repeat iNext.
-            rfn_bind_pop'. by iApply "IH". iIntros (v v') "Hvv'".
-            rfn_bind_pop'. by iApply "IH1". simpl. iIntros (w w') "Hww'". rfn_val. iFrame. }
+            rfn_bind_pp. by iApply "IH". iIntros (v v') "Hvv'".
+            rfn_bind_pp. by iApply "IH1". simpl. iIntros (w w') "Hww'". rfn_val. iFrame. }
     - destruct dir; iIntros (v v') "Hvv'"; rfn_steps; rfn_val.
   Qed.
 
@@ -132,29 +132,29 @@ Section casts_compat.
         | iSpecialize ("IH" $! dir) ].
       + destruct dir; rewrite /switch; iIntros (v v') "#Hvv'".
         * rfn_steps. rfn_val. iNext. iIntros (w w') "#Hww'". asimpl.
-          rfn_bind_pop'. by iApply "IH". iIntros (x x') "#Hxx'". dvals v v'. rfn_steps.
-          iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind'. by iApply "Hvv'". iApply "IH1".
+          rfn_bind_pp. by iApply "IH". iIntros (x x') "#Hxx'". dvals v v'. rfn_steps.
+          iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind. by iApply "Hvv'". iApply "IH1".
         * rfn_steps. rfn_val. iNext. iIntros (w w') "#Hww'". asimpl.
-          rfn_bind_pop'. by iApply "IH". iIntros (x x') "#Hxx'". dvals v v'. rfn_steps.
-          iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind'. by iApply "Hvv'". iApply "IH1".
+          rfn_bind_pp. by iApply "IH". iIntros (x x') "#Hxx'". dvals v v'. rfn_steps.
+          iSpecialize ("Hvv'" with "Hxx'"). iNext. rfn_bind. by iApply "Hvv'". iApply "IH1".
       + destruct dir; rewrite /switch; iIntros (v v') "#Hvv'".
         * rfn_steps. dvals v v'; try rfn_faulty; rfn_steps.
-          { rfn_bind_pop'. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
-          { rfn_bind_pop'. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+          { rfn_bind_pp. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+          { rfn_bind_pp. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
         * rfn_steps. dvals v v'; try rfn_faulty; rfn_steps.
-          { rfn_bind_pop'. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
-          { rfn_bind_pop'. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+          { rfn_bind_pp. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+          { rfn_bind_pp. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
       + destruct dir; rewrite /switch; iIntros (v v') "#Hvv'";
           dvals v v'; rfn_steps.
         * iDestruct "Hvv'" as "[a b]".
-          rfn_bind_pop'. by iApply "IH".
+          rfn_bind_pp. by iApply "IH".
           repeat iNext. iIntros (w w') "Hww'".
-          rfn_bind_pop'. by iApply "IH1".
+          rfn_bind_pp. by iApply "IH1".
           iIntros (x x') "Hxx'". rfn_val. iFrame.
         * iDestruct "Hvv'" as "[a b]".
-          rfn_bind_pop'. by iApply "IH".
+          rfn_bind_pp. by iApply "IH".
           repeat iNext. iIntros (w w') "Hww'".
-          rfn_bind_pop'. by iApply "IH1".
+          rfn_bind_pp. by iApply "IH1".
           iIntros (x x') "Hxx'". rfn_val. iFrame.
   Qed.
 
@@ -163,7 +163,7 @@ Section casts_compat.
                       exprel_typed τ' L (AppAn (of_val $ cast ℓ τ τ' H) e)
                                         (AppAn (of_val $ cast ℓ' τ τ' H) e')).
   Proof.
-    iIntros (e e') "Hee'". rfn_bind "Hee'".
+    iIntros (e e') "#Hee'". rfn_bind; auto.
     by iDestruct (compat_cast_val _ _ H _ _ _ HL $! Normal) as "H".
   Qed.
 

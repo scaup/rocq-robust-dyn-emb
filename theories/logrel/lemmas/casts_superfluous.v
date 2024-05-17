@@ -18,7 +18,7 @@ Section casts_superfluous.
                 exprel_typed τ L (of_val v)
                                  (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v'))).
   Proof.
-    iInduction τ as [ B | const | asdf] "IH";
+    iInduction τ as [ B | const | ] "IH";
       iIntros (dir); iIntros (v v') "#Hvv'"; rfn_steps.
     - destruct B, dir; rfn_steps; (try by rfn_val).
       * dvals v v'; rfn_steps; rfn_val.
@@ -80,7 +80,7 @@ Section casts_superfluous.
                 exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v))
                                  (of_val v')).
   Proof.
-    iInduction τ as [ B | const | asdf] "IH";
+    iInduction τ as [ B | const | ] "IH";
       iIntros (dir); iIntros (v v') "#Hvv'"; rfn_steps.
     - destruct B, dir; rfn_steps; (try by rfn_val).
       * dvals v v'; rfn_steps; rfn_val.
@@ -134,7 +134,7 @@ Section casts_superfluous.
                 exprel_typed τ L (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v))
                                  (AppAn (of_val $ cast_upwards ℓ τ dir) (of_val v'))).
   Proof.
-    iInduction τ as [ B | const | asdf] "IH";
+    iInduction τ as [ B | const | ] "IH";
       iIntros (dir); iIntros (v v') "#Hvv'"; rfn_steps.
     - destruct B, dir; rfn_steps; (try by rfn_val).
       * dvals v v'; rfn_steps; rfn_val.
@@ -146,7 +146,7 @@ Section casts_superfluous.
       + (* working with a ground type *)
         destruct const.
         * dvals v v'. rfn_steps. rfn_val. asimpl. iNext. iIntros (w w') "#Hww'". rfn_steps.
-          iSpecialize ("Hvv'" with "Hww'"). iNext. rfn_bind'. by iApply "Hvv'". repeat iNext.
+          iSpecialize ("Hvv'" with "Hww'"). iNext. rfn_bind. by iApply "Hvv'". repeat iNext.
           iIntros (x x') "Hxx'". rfn_steps. rfn_val.
         * dvals v v'; rfn_steps; rfn_val.
         * dvals v v'. rfn_steps. rfn_val.
@@ -155,25 +155,25 @@ Section casts_superfluous.
                       | iSpecialize ("IH" $! dir); iSpecialize ("IH1" $! dir)
                       | iSpecialize ("IH" $! dir); iSpecialize ("IH1" $! dir) ].
         * dvals v v'. destruct dir; rfn_steps; rfn_val; iNext; iIntros (w w') "#Hww'"; rfn_steps.
-          { rfn_bind_pop'. by iApply "IH". iIntros (x x') "#Hxx'". rfn_steps.
+          { rfn_bind_pp. by iApply "IH". iIntros (x x') "#Hxx'". rfn_steps.
             iSpecialize ("Hvv'" with "Hxx'"). iNext.
-            rfn_bind'. by iApply "Hvv'". iApply "IH1". }
-          { rfn_bind_pop'. by iApply "IH". iIntros (x x') "#Hxx'". rfn_steps.
+            rfn_bind. by iApply "Hvv'". iApply "IH1". }
+          { rfn_bind_pp. by iApply "IH". iIntros (x x') "#Hxx'". rfn_steps.
             iSpecialize ("Hvv'" with "Hxx'"). iNext.
-            rfn_bind'. by iApply "Hvv'". iApply "IH1". }
+            rfn_bind. by iApply "Hvv'". iApply "IH1". }
         * dvals v v'.
           { destruct dir; rfn_steps.
-            rfn_bind_pop'. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val.
-            rfn_bind_pop'. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+            rfn_bind_pp. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val.
+            rfn_bind_pp. by iApply "IH". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
           { destruct dir; rfn_steps.
-            rfn_bind_pop'. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val.
-            rfn_bind_pop'. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
+            rfn_bind_pp. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val.
+            rfn_bind_pp. by iApply "IH1". do 2 iNext. iIntros (w w') "Hww'". rfn_val. }
         * dvals v v'. iDestruct "Hvv'" as "[a b]"; destruct dir; rfn_steps.
-          { rfn_bind_pop'. by iApply "IH". repeat iNext.
-            iIntros (w w') "Hww'". rfn_bind_pop'. by iApply "IH1".
+          { rfn_bind_pp. by iApply "IH". repeat iNext.
+            iIntros (w w') "Hww'". rfn_bind_pp. by iApply "IH1".
             iIntros (x x') "Hxx'". rfn_val. iFrame. }
-          { rfn_bind_pop'. by iApply "IH". repeat iNext.
-            iIntros (w w') "Hww'". rfn_bind_pop'. by iApply "IH1".
+          { rfn_bind_pp. by iApply "IH". repeat iNext.
+            iIntros (w w') "Hww'". rfn_bind_pp. by iApply "IH1".
             iIntros (x x') "Hxx'". rfn_val. iFrame. }
     - iNext. rfn_val.
   Qed.

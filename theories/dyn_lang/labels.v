@@ -30,9 +30,5 @@ Fixpoint labels_expr (e : expr) : listset label :=
         {[ ℓ ]}
     end.
 
-(* Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ (labels_expr e). *)
-
 Definition InDynExpr (e : expr) : LabelRel :=
   unary_conj (fun ℓ => ℓ ∈ (labels_expr e)).
-
-(* Notation "Δ e" := (Diagonal e) (at level 0). *)

@@ -13,61 +13,6 @@ Section fundamental.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  Lemma rfn_bindK {K K' t t' e e' Ψ Φ L} :
-    t = fill K e →
-    t' = fill K' e' →
-    ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L t t'.
-  Proof. intros. simplify_eq. iApply rfn_bind'. Qed.
-
-  (* "bind pop left" *)
-  Ltac rfn_bind_pr :=
-    iApply rfn_bindK; [ simpl; by rw_fill; eauto | simpl; by rw_fill_popped; eauto | simpl | simpl ].
-
-  Ltac rfn_bind_pl :=
-    iApply rfn_bindK; [ simpl; by rw_fill_popped; eauto | simpl; by rw_fill; eauto | simpl | simpl ].
-
-  Ltac rfn_bind_pp :=
-    iApply rfn_bindK; [ simpl; by rw_fill_popped; eauto | simpl; by rw_fill_popped; eauto | simpl | simpl ].
-
-  Ltac rfn_bind :=
-    iApply rfn_bindK; [ simpl; by rw_fill; eauto | simpl; by rw_fill; eauto | simpl | simpl ].
-
-  Ltac permissive_solver :=
-      lazymatch goal with
-      | HΔ : le_permissive _ ?Δ |- le_permissive _ ?Δ =>
-          (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; set_solver)
-          (* (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver) *)
-      | _ => fail "ads"
-      end.
-
- Lemma unary_conj_id H ℓ : H ℓ → unary_conj H ℓ ℓ.
- Proof. intro. by split. Qed.
-
-    Ltac delta_solver :=
-      lazymatch goal with
-      | HΔ : le_permissive _ ?Δ |- ?Δ _ _ =>
-          (apply HΔ, unary_conj_id; set_solver)
-          (* (apply HΔ, unary_conj_id; rewrite /elemhood; set_solver) *)
-      | _ => fail "ads"
-      end.
-
-  Ltac rfn_faulty := (iApply rfn_faulty; [ by faulty_solver| by faulty_solver| by delta_solver ]).
-(*                      (iApply (rfn_faulty _ _ with "Hp"); faulty_solver). *)
-
-
-
-  Ltac dvals v v' := destruct v, v'; repeat (lazymatch goal with | x : base_lit |- _ => destruct x end); auto.
-
-  Instance Ids_expr : Ids expr. derive. Defined.
-  Instance Var_Inj : Inj eq eq Var. intros x1 x2 eq. by inversion eq. Qed.
-
-Ltac closed_solver :=
-  lazymatch goal with
-  | H : Closed_n _ _ |- Closed_n _ _ => intros σ; specialize (H σ); simpl in H; by simplify_eq
-  | |- Closed_n _ _ => fail "goal detected suc"
-  | _ => fail "wrong goal"
-  end.
-
   Lemma fundamental_r (e : expr) n (Hne : Closed_n n e) :
     open_exprel_typed (replicate n Unknown) (InDynExpr e) e (⌊ (⌜⌜ e ⌝⌝) ⌋) Unknown.
   Proof.
