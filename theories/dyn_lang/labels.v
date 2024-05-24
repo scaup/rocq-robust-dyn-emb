@@ -31,4 +31,4 @@ Fixpoint labels_expr (e : expr) : listset label :=
     end.
 
 Definition InDynExpr (e : expr) : LabelRel :=
-  unary_conj (fun ℓ => ℓ ∈ (labels_expr e)).
+  diagonal (labels_expr e).

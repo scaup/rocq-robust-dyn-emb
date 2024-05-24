@@ -27,7 +27,7 @@ From main.grad_lang Require Import typing.
 Section lemmas.
 
   Lemma LamN_ctx_no_lables n : InGradCtx (grd.LamN_ctx n) ⊑ ⊥.
-  Proof. rewrite /InGradCtx /unary_conj. intros l l'. induction n; set_solver. Qed.
+  Proof. rewrite /InGradCtx /diagonal. intros l l'. induction n; set_solver. Qed.
 
   Lemma LamN_ctx_lables n : labels_ctx (grd.LamN_ctx n) ≡ ∅.
   Proof. induction n; set_solver. Qed.

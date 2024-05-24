@@ -16,7 +16,7 @@ Section superfluous_l.
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Lemma LamN_ctx_no_lables n : InGradCtx (grd.LamN_ctx n) ⊑ ⊥.
-  Proof. rewrite /InGradCtx /unary_conj. intros l l'. induction n; set_solver. Qed.
+  Proof. rewrite /InGradCtx /diagonal; intros l l'. induction n; set_solver. Qed.
 
   Lemma LamN_ctx_rel_typed Γ τ :
     ctx_rel_typed ⊥ (LamN_ctx (length Γ)) (LamN_ctx (length Γ)) Γ τ [] (LamN_type Γ τ).

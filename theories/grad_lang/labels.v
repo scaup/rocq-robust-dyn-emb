@@ -63,15 +63,11 @@ Lemma labels_ctx_app C C' :
   labels_ctx (C ++ C') ≡ labels_ctx C ∪ labels_ctx C'.
 Proof. induction C. rewrite app_nil_l. set_solver. simpl. set_solver. Qed.
 
-(* Definition occursIn (e : expr) : label → Prop := fun ℓ => ℓ ∈ labels_expr e. *)
-
 Definition InGradExpr (e : expr) : LabelRel :=
-  unary_conj (fun ℓ => ℓ ∈ (labels_expr e)).
+  diagonal (labels_expr e).
 
 Definition InGradCtx_item (Ci : ctx_item) : LabelRel :=
-  unary_conj (fun ℓ => ℓ ∈ (labels_ctx_item Ci)).
+  diagonal (labels_ctx_item Ci).
 
 Definition InGradCtx (C : ctx) : LabelRel :=
-  unary_conj (fun ℓ => ℓ ∈ (labels_ctx C)).
-
-(* Notation "Δ e" := (Diagonal e) (at level 0). *)
+  diagonal (labels_ctx C).

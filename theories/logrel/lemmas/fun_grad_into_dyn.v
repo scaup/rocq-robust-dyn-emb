@@ -13,7 +13,7 @@ From main.maps Require Import grad_into_dyn.definition.
 
 Lemma open_exprel_typed_weaken (L L' : LabelRel) (Γ : list type) (e e' : expr) (τ : type) :
   open_exprel_typed Γ L e e' τ →
-  le_permissive L L' →
+  L ⊑ L' →
   open_exprel_typed Γ L' e e' τ.
 Proof. intros. intros Δ HL'Δ. apply H. by eapply le_permissive_trans'. Qed.
 
@@ -21,7 +21,8 @@ Section fundamental.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  Ltac permissive_solver := by rewrite /InGradExpr /unary_conj /disj; intros x x'; set_solver.
+  Ltac permissive_solver :=
+    by rewrite /InGradExpr /diagonal /join /join_LabelRel_inst /join_LabelRel; intros x x'; set_solver.
 
   Lemma fundamental Γ e τ (H : typed Γ e τ) :
     open_exprel_typed Γ (InGradExpr e) (⌊ e ⌋) (⌊ e ⌋) τ.
@@ -60,8 +61,8 @@ Section fundamental.
 
   Ltac permissive_solver'  :=
     try by (lazymatch goal with
-            | H : le_permissive _ _ |- le_permissive _ _ =>
-                rewrite /InGradCtx_item /InGradExpr /unary_conj /labels_ctx_item /disj in H |- *;
+            | H : _ ⊑ _ |- _ ⊑ _ =>
+                rewrite /InGradCtx_item /InGradExpr /diagonal /labels_ctx_item /join /join_LabelRel_inst /join_LabelRel in H |- *;
                 intros x x'; specialize (H x x'); set_solver end).
 
 
@@ -72,7 +73,8 @@ Section fundamental.
     simpl. destruct HCi; simpl.
     - by apply compat_lam.
     - eapply open_exprel_typed_weaken.
-      eauto using compat_app, fundamental. permissive_solver'.
+      eauto using compat_app, fundamental.
+      permissive_solver'.
     - eapply open_exprel_typed_weaken.
       eauto using compat_app, fundamental. permissive_solver'.
     - eapply open_exprel_typed_weaken.
@@ -113,9 +115,9 @@ Section fundamental.
   Proof.
     intros L HCiL e e' Hee'. induction HC; simpl. auto.
     eapply fundamental_ctx_item; eauto. rewrite /InGradCtx in HCiL.
-    apply (le_permissive_trans' _ _ _ HCiL). apply le_perm_unary_conj. intros k Hk; set_solver.
+    apply (le_permissive_trans' _ _ _ HCiL). apply le_permissive_diagonal. intros k Hk; set_solver.
     apply IHHC.
-    apply (le_permissive_trans' _ _ _ HCiL). apply le_perm_unary_conj. intros k Hk; set_solver.
+    apply (le_permissive_trans' _ _ _ HCiL). apply le_permissive_diagonal. intros k Hk; set_solver.
     auto.
   Qed.
 

@@ -15,7 +15,7 @@ Lemma logrel_adequacy L e e' τ
     RefineL L e e'.
 Proof.
   rewrite /open_exprel_typed /exprel_typed /rfn in H.
-  specialize (H L (le_permissive_same L) [] []). asimpl in H.
+  specialize (H L (le_permissive_refl_inst L) [] []). asimpl in H.
   rewrite /val_lift_r /lbl_lift_r in H.
   assert (H' : ⊢ wp (fun v => ⌜∃ v', rtc step_ne e' (of_val v')⌝)
                     (fun ℓ => ⌜∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ'⌝) e).
@@ -36,7 +36,7 @@ Qed.
 
 Lemma refineL_trans (L L' : LabelRel) e1 e2 e3
   (H12 : RefineL L e1 e2) (H23 : RefineL L' e2 e3) :
-  RefineL (comb_trans_lblrel L L') e1 e3.
+  RefineL (combine_LabelRel L L') e1 e3.
 Proof.
   split.
   - destruct H12 as [R12 _]; destruct H23 as [R23 _].

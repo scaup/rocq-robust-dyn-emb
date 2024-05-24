@@ -14,7 +14,7 @@ Section fundamental.
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Lemma fundamental_r (e : expr) n (Hne : Closed_n n e) :
-    open_exprel_typed (replicate n Unknown) (InDynExpr e) e (⌊ (⌜⌜ e ⌝⌝) ⌋) Unknown.
+    open_exprel_typed (replicate n Unknown) (InDynExpr e) e (⌊ (⌈⌈ e ⌉⌉) ⌋) Unknown.
   Proof.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
@@ -117,7 +117,7 @@ Section fundamental.
 
 
   Lemma fundamental_l (e : expr) n (Hne : Closed_n n e) :
-    open_exprel_typed (replicate n Unknown) (InDynExpr e) (⌊ (⌜⌜ e ⌝⌝) ⌋) e Unknown.
+    open_exprel_typed (replicate n Unknown) (InDynExpr e) (⌊ (⌈⌈ e ⌉⌉) ⌋) e Unknown.
   Proof.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
@@ -222,7 +222,7 @@ Section fundamental.
   (* alternatively; we can define logrel at Γ such that arbitrary substitution larger... *)
   (* or just enforce closedness in logrel; might be more natural.. *)
 
-  Lemma dyn_emb_trns_pres_closed_n e n : Closed_n n e → Closed_n n (⌊ (⌜⌜ e ⌝⌝) ⌋).
+  Lemma dyn_emb_trns_pres_closed_n e n : Closed_n n e → Closed_n n (⌊ (⌈⌈ e ⌉⌉) ⌋).
   Proof.
     revert n.
     induction e; intros; (try by asimpl); intros σ'; asimpl; (try rewrite decide_True; auto);

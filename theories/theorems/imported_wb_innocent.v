@@ -25,7 +25,7 @@ Section dyn_emb.
      open_exprel_typed Γ ∅ e e τ ∧ Closed_n (length Γ) e.
 
   Definition import ℓ Γ τ (e : dexpr) : gexpr :=
-     gfill_ctx (linker ℓ Γ τ) ⌜⌜ e ⌝⌝.
+     gfill_ctx (linker ℓ Γ τ) ⌈⌈ e ⌉⌉.
 
   Theorem importing_well_behaved_innocent Γ (e : dexpr) τ :
     WellBehaved Γ e τ → ∀ ℓ, Innocent Γ τ (import ℓ Γ τ e).
@@ -36,31 +36,31 @@ Section dyn_emb.
     assert (HC' := fundamental_ctx C _ _ _ _ HC).
     assert (Hee' := fundamental_l _ _ HCe).
     (* *)
-    assert (HR12 : RefineL (InGradCtx C ⊔ (unary_conj (eq ℓ)) ⊔ InDynExpr e)
+    assert (HR12 : RefineL (InGradCtx C ⊔ (diagonal (eq ℓ)) ⊔ InDynExpr e)
               (fill_ctx (trns_ctx C)
-                  (fill_ctx (trns_ctx (linker ℓ Γ τ)) ⌊ ⌜⌜ e ⌝⌝ ⌋))
+                  (fill_ctx (trns_ctx (linker ℓ Γ τ)) ⌊ ⌈⌈ e ⌉⌉ ⌋))
               (fill_ctx (trns_ctx C)
                   (fill_ctx (trns_ctx (linker ℓ Γ τ)) e))).
     { eapply logrel_adequacy. apply HC'.
-      { eapply le_permissive_trans'. apply compats.disj_le1. apply compats.disj_le1. }
+      { eapply le_permissive_trans'. apply le_permissive_join_l. apply le_permissive_join_l. }
       apply linker_compat; auto.
-      { eapply le_permissive_trans'. apply compats.disj_le1. apply compats.disj_le2. rewrite /unary_conj. auto. }
+      { eapply le_permissive_trans'. apply le_permissive_join_l. apply le_permissive_join_r. by apply diagonal_auto. }
       by apply dyn_emb_trns_pres_closed_n.
-      eapply open_exprel_typed_weaken. apply Hee'. apply compats.disj_le2.
+      eapply open_exprel_typed_weaken. apply Hee'. apply le_permissive_join_r.
     }
     assert (HR23 : RefineL (InGradCtx C)
               (fill_ctx (trns_ctx C)
                   (fill_ctx (trns_ctx (linker ℓ Γ τ)) e))
               (fill_ctx (trns_ctx C) e)).
-    { eapply logrel_adequacy. apply HC'. apply le_permissive_same.
+    { eapply logrel_adequacy. apply HC'. apply le_permissive_refl_inst.
       apply linker_superfluous_l. auto.
       eapply open_exprel_typed_weaken. apply Hee. intros l l' H'. by exfalso. }
     assert (HR13 := (refineL_trans _ _ _ _ _ HR12 HR23)). clear HR12 HR23.
     (* *)
     destruct HR13 as [H1 H2]. specialize (H2 _ H).
     destruct H2 as [l' (P & H')].
-    rewrite /comb_trans_lblrel /disj in P.
-    destruct P as (l2 & PP). rewrite /InGradCtx /diag /InDynExpr /InGradCtx in PP.
+    rewrite /combine_LabelRel /join /join_LabelRel_inst /join_LabelRel in P.
+    destruct P as (l2 & PP). rewrite /InGradCtx /diagonal /InDynExpr /InGradCtx in PP.
     destruct PP. repeat destruct H0; try set_solver.
   Qed.
 

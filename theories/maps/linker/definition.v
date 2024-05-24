@@ -52,8 +52,10 @@ Section lemmas.
     2: { apply fundamental_ctx. apply linker_typed. }
     rewrite /linker.
     intros l l' Hll'.
-    rewrite /InGradCtx /unary_conj in Hll'.
+    rewrite /InGradCtx /diagonal in Hll'.
     assert (Ha := AppWithList_ctx_wrap_ctx_vars_ascribe_up_lables ℓ Γ).
+    (* Set Printing Coercions. *)
+    rewrite /elemhood in Hll'.
     repeat rewrite labels_ctx_app in Hll'.
     rewrite LamN_ctx_lables in Hll'. simpl in Hll'. destruct Hll' as [a b].
     assert ((l ∈ ({[ℓ]} : listset label))). set_solver.
@@ -67,7 +69,7 @@ Section lemmas.
                           (fill_ctx (trns_ctx (linker ℓ Γ τ)) e') τ.
   Proof.
     intros Hee'.
-    apply (linker_compat' L ℓ H Γ τ L (le_permissive_same L) e e').
+    apply (linker_compat' L ℓ H Γ τ L (le_permissive_refl_inst L) e e').
     apply open_exprel_typed_app_ctx; eauto; try by rewrite replicate_length.
   Qed.
 

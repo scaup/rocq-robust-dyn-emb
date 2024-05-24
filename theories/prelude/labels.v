@@ -7,98 +7,103 @@ Class NeverOccurs (ℓ : label) : Type.
 
 Definition LabelRel := relation label.
 
+(* relations on LabelRel *)
+
 Definition le_permissive : relation LabelRel :=
   fun L1 L2 => (∀ ℓ ℓ', L1 ℓ ℓ' → L2 ℓ ℓ') .
+Instance le_permissive_inst : SqSubsetEq LabelRel :=
+  le_permissive.
+(* Allows for ⊑-notation *)
 
-Definition equiv_LabelRel (L L' : LabelRel) :=
-  ∀ ℓ ℓ', L ℓ ℓ' <-> L' ℓ ℓ' .
+Definition equiv_LabelRel : relation LabelRel :=
+  fun L L' => ∀ ℓ ℓ', L ℓ ℓ' <-> L' ℓ ℓ' .
+Instance equiv_LabelRel_inst : Equiv LabelRel :=
+  equiv_LabelRel.
+(* Allows for ≡-notation *)
 
-Notation "L1 ≤ L2" := (le_permissive L1 L2).
+(* basic examples LabelRel *)
+(* --------------------------- *)
 
-Instance le_permissive_trans : Transitive le_permissive.
+Definition PermitNone : LabelRel :=
+  fun _ _ => False.
+Instance PermitNone_inst : Empty LabelRel :=
+  PermitNone.
+(* Allow for "∅" notation *)
+Instance PermitNone_bot_inst : Bottom LabelRel :=
+  PermitNone.
+(* Allow for "⊥" notation *)
+
+Definition PermitAll : LabelRel :=
+  fun _ _ => True.
+Instance PermitAll_top_inst : Top LabelRel :=
+  PermitAll.
+(* Allow fro "⊤" notation *)
+
+Definition join_LabelRel (L1 L2 : LabelRel) : LabelRel :=
+  fun ℓ ℓ' => L1 ℓ ℓ' ∨ L2 ℓ ℓ'.
+Instance join_LabelRel_inst : Join LabelRel :=
+  join_LabelRel.
+(* Allows for ⊔-notation *)
+
+Definition diagonal (L : label → Prop) : LabelRel :=
+  fun ℓ ℓ' => ℓ = ℓ' ∧ L ℓ ∧ L ℓ'.
+
+Definition combine_LabelRel (L L' : LabelRel) : LabelRel :=
+  fun ℓ1 ℓ3 => ∃ ℓ2, L ℓ1 ℓ2 ∧ L' ℓ2 ℓ3.
+
+Notation "L ∘ L'" := (combine_LabelRel L L').
+
+(* ⊑ froms preorder; todo *)
+(* --------------------------- *)
+
+Instance le_permissive_trans_inst : Transitive le_permissive.
 Proof. intros R1 R2 R3 H12 H23 ℓ ℓ' Hℓℓ'. by apply H23, H12. Qed.
-
 Lemma le_permissive_trans' Δ1 Δ2 Δ3 :
   le_permissive Δ2 Δ3 → le_permissive Δ1 Δ2 → le_permissive Δ1 Δ3.
 Proof. intros. by eapply transitivity. Qed.
 
-Definition PermitNone : LabelRel := fun _ _ => False.
-(* Notation "∅" := (PermitNone). *)
+Instance le_permissive_refl_inst : Reflexive le_permissive.
+Proof. intros L l l'; auto. Qed.
 
-Instance empty_labelrel : Empty LabelRel := PermitNone.
+Lemma le_permissive_join_l (L1 L2 : LabelRel) : L1 ⊑ (L1 ⊔ L2).
+Proof. intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst. by left. Qed.
 
-Definition PermitAll : LabelRel := fun _ _ => True.
-(* Notation "#" := (PermitAll). *)
+Lemma le_permissive_join_r (L1 L2 : LabelRel) : L2 ⊑ (L1 ⊔ L2).
+Proof. intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst. by right. Qed.
 
-Definition disj (L1 L2 : LabelRel) : LabelRel :=
-  fun ℓ ℓ' => L1 ℓ ℓ' ∨ L2 ℓ ℓ'.
+(* trvivial lemmas *)
+(* --------------------------- *)
 
-Notation "L ⋎ L'" := (disj L L') (at level 5).
-
-Definition unary_conj (L : label → Prop) : LabelRel :=
-  fun ℓ ℓ' => ℓ = ℓ' ∧ L ℓ ∧ L ℓ'.
-
-Lemma unary_conj_id H ℓ : H ℓ → unary_conj H ℓ ℓ.
+Lemma diagonal_auto H ℓ : H ℓ → diagonal H ℓ ℓ.
 Proof. intro. by split. Qed.
+
+Lemma le_permissive_diagonal L L' (H : ∀ ℓ, L ℓ → L' ℓ) :
+  le_permissive (diagonal L) (diagonal L').
+Proof. rewrite /diagonal. intros ℓ ℓ' H'. naive_solver. Qed.
+
+(* tactics *)
+(* --------------------------- *)
 
 Ltac delta_solver :=
   lazymatch goal with
-  | HΔ : le_permissive _ ?Δ |- ?Δ _ _ =>
-      (apply HΔ, unary_conj_id; set_solver)
+  | HΔ : _ ⊑ ?Δ |- ?Δ _ _ =>
+      (apply HΔ, diagonal_auto; set_solver)
       (* (apply HΔ, unary_conj_id; rewrite /elemhood; set_solver) *)
   | _ => fail "ads"
   end.
 
-Notation diag := unary_conj.
-
-Lemma le_perm_unary_conj L L' (H : ∀ ℓ, L ℓ → L' ℓ) :
-  le_permissive (unary_conj L) (unary_conj L').
-Proof. rewrite /diag. intros ℓ ℓ' H'. naive_solver. Qed.
-
 Ltac permissive_solver :=
   lazymatch goal with
-  | HΔ : le_permissive _ ?Δ |- le_permissive _ ?Δ =>
-      (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; set_solver)
+  | HΔ : _ ⊑ ?Δ |- _ ⊑ ?Δ =>
+      (apply (le_permissive_trans' _ _ _ HΔ), le_permissive_diagonal; intros k Hk; set_solver)
       (* (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver) *)
   | _ => fail "ads"
   end.
 
-Definition elemhood (ℓs : listset label) : label → Prop :=
+(* (* coercions *) *)
+(* --------------------------- *)
+
+Definition elemhood {A : Type} (ℓs : listset A) : A → Prop :=
   fun ℓ => ℓ ∈ ℓs.
 
-Lemma le_permissive_same L : le_permissive L L.
-Proof. intros x x'; naive_solver. Qed.
-
-
-(* Lemma disj_union (ℓs ℓs' : listset label) : *)
-(*   equiv_LabelRel (disj (unary_conj (fun ℓ => ℓ ∈ ℓs)) (unary_conj (fun ℓ => ℓ ∈ ℓs'))) *)
-(*     (unary_conj (fun ℓ => ℓ ∈ ℓs ∪ ℓs')). *)
-(* Proof. *)
-(*   intros ℓ ℓ'. split; intro H. eauto. *)
-
-
-Instance le_permissive_sqsubseteq : SqSubsetEq LabelRel :=
-  le_permissive.
-Instance le_permissive_equiv : Equiv LabelRel :=
-  equiv_LabelRel.
-Instance le_permissive_join : Join LabelRel :=
-  disj.
-(* Instance le_permissive_meet : Meet LabelRel := *)
-(*   disj. *)
-
-Instance le_permissive_top : Top LabelRel :=
-  PermitAll.
-
-Instance le_permissive_bot : Bottom LabelRel :=
-  PermitNone.
-
-Definition comb_trans_lblrel (L L' : LabelRel) : LabelRel :=
-  fun ℓ1 ℓ3 => ∃ ℓ2, L ℓ1 ℓ2 ∧ L' ℓ2 ℓ3.
-
-Notation "L ∘ L'" := (comb_trans_lblrel L L').
-
-Lemma le_meet_l (L1 L2 : LabelRel) : L1 ⊑ (L1 ⊔ L2).
-Proof. intros ℓ ℓ' H. rewrite /join /le_permissive_join. by left. Qed.
-
-Lemma le_meet_r (L1 L2 : LabelRel) : L2 ⊑ (L1 ⊔ L2).
-Proof. intros ℓ ℓ' H. rewrite /join /le_permissive_join. by right. Qed.
+Coercion elemhood : listset >-> Funclass.

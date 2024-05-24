@@ -37,16 +37,10 @@ Proof.
   iApply He; auto. simpl. auto.
 Qed.
 
-Lemma disj_le1 (L1 L2 : LabelRel) : le_permissive L1 (disj L1 L2).
-Proof. intros ℓ ℓ' H. rewrite /disj. naive_solver. Qed.
-
-Lemma disj_le2 (L1 L2 : LabelRel) : le_permissive L2 (disj L1 L2).
-Proof. intros ℓ ℓ' H. rewrite /disj. naive_solver. Qed.
-
 Lemma compat_pair (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' τ1 τ2
   (H1 : open_exprel_typed Γ L1 e1 e1' τ1)
   (H2 : open_exprel_typed Γ L2 e2 e2' τ2) :
-  open_exprel_typed Γ (disj L1 L2) (Pair e1 e2) (Pair e1' e2') (Bin Product τ1 τ2).
+  open_exprel_typed Γ (L1 ⊔ L2) (Pair e1 e2) (Pair e1' e2') (Bin Product τ1 τ2).
 (* Lemma compat_pair (Γ : list type) (L1 L2 L : LabelRel) (HL : le_permissive (disj L1 L2) L) e1 e1' e2 e2' τ1 τ2 *)
 (*   (H1 : open_exprel_typed Γ L1 e1 e1' τ1) *)
 (*   (H2 : open_exprel_typed Γ L2 e2 e2' τ2) : *)
@@ -54,11 +48,11 @@ Lemma compat_pair (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' τ1 τ2
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind. iApply H1; auto.
-  eapply le_permissive_trans'; eauto. eapply disj_le1.
-  (* eapply le_permissive_trans'; eauto. eapply le_permissive_trans'; eauto. eapply disj_le1. *)
+  eapply le_permissive_trans'; eauto. eapply le_permissive_join_l.
+  (* eapply le_permissive_trans'; eauto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_l. *)
   iIntros (v1 v1') "#Hvv1'".
   rfn_bind. iApply H2; auto.
-  eapply le_permissive_trans'; eauto. eapply disj_le2.
+  eapply le_permissive_trans'; eauto. eapply le_permissive_join_r.
   iIntros (v2 v2') "#Hvv2'".
   rfn_val. rewrite /prod_rel. auto.
 Qed.
@@ -86,43 +80,46 @@ Qed.
 Lemma compat_seq (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' κ κ' τ
   (H1 : open_exprel_typed Γ L1 e1 e1' (Base Unit))
   (H2 : open_exprel_typed Γ L2 e2 e2' τ) :
-  open_exprel_typed Γ ((disj L1 L2)) (Seq κ e1 e2) (Seq κ' e1' e2') τ.
+  open_exprel_typed Γ (L1 ⊔ L2) (Seq κ e1 e2) (Seq κ' e1' e2') τ.
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind.
-  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply disj_le1.
+  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_l.
   iIntros (v v') "#Hvv'". dvals v v'.
   rfn_steps.
-  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply disj_le2.
+  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_r.
 Qed.
 
 Lemma compat_if (Γ : list type) (L1 L2 L3 : LabelRel) e0 e0' e1 e1' e2 e2' κ κ' τ
   (H0 : open_exprel_typed Γ L1 e0 e0' (Base Bool))
   (H1 : open_exprel_typed Γ L2 e1 e1' τ)
   (H2 : open_exprel_typed Γ L3 e2 e2' τ) :
-  open_exprel_typed Γ (L1 ⋎ L2 ⋎ L3) (If κ e0 e1 e2) (If κ' e0' e1' e2') τ.
+  open_exprel_typed Γ (L1 ⊔ L2 ⊔ L3) (If κ e0 e1 e2) (If κ' e0' e1' e2') τ.
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind.
-  iApply H0; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
+  iApply H0; auto. eapply le_permissive_trans'; eauto.
+  { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
   iIntros (v v') "#Hvv'". dvals v v'.
   rfn_steps.
   iRewrite "Hvv'". destruct b0.
-  - iApply H1; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
-  - iApply H2; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
+  - iApply H1; auto. eapply le_permissive_trans'; eauto.
+    { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
+  - iApply H2; auto. eapply le_permissive_trans'; eauto.
+    { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
 Qed.
 
 Lemma compat_binop (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' κ κ' op
   (H1 : open_exprel_typed Γ L1 e1 e1' (Base Int))
   (H2 : open_exprel_typed Γ L2 e2 e2' (Base Int)) :
-  open_exprel_typed Γ (L1 ⋎ L2) (BinOp κ op e1 e2) (BinOp κ' op e1' e2') (binop_res_type op).
+  open_exprel_typed Γ (L1 ⊔ L2) (BinOp κ op e1 e2) (BinOp κ' op e1' e2') (binop_res_type op).
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind.
-  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply disj_le1.
+  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_l.
   iIntros (v v') "#Hvv'".
   rfn_bind.
-  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply disj_le2.
+  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_r.
   iIntros (w w') "#Hww'".
   dvals v v'. dvals w w'. iRewrite "Hvv'". iRewrite "Hww'".
   destruct op; rfn_steps; rfn_val.
@@ -131,14 +128,14 @@ Qed.
 Lemma compat_app (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' κ κ' τ1 τ2
   (H1 : open_exprel_typed Γ L1 e1 e1' (Bin Arrow τ1 τ2))
   (H2 : open_exprel_typed Γ L2 e2 e2' τ1) :
-  open_exprel_typed Γ (L1 ⋎ L2) (App κ e1 e2) (App κ' e1' e2') τ2.
+  open_exprel_typed Γ (L1 ⊔ L2) (App κ e1 e2) (App κ' e1' e2') τ2.
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind.
-  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply disj_le1.
+  iApply H1; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_l.
   iIntros (v v') "#Hvv'".
   rfn_bind.
-  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply disj_le2.
+  iApply H2; auto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_r.
   iIntros (w w') "#Hww'". dvals v v'.
   rfn_steps. by iApply "Hvv'".
 Qed.
@@ -175,17 +172,20 @@ Lemma compat_case (Γ : list type) (L1 L2 L3 : LabelRel) e0 e0' e1 e1' e2 e2' κ
   (H0 : open_exprel_typed Γ L1 e0 e0' (Bin Sum τ1 τ2))
   (H1 : open_exprel_typed (τ1 :: Γ) L2 e1 e1' τ)
   (H2 : open_exprel_typed (τ2 :: Γ) L3 e2 e2' τ) :
-  open_exprel_typed Γ (L1 ⋎ L2 ⋎ L3) (Case κ e0 e1 e2) (Case κ' e0' e1' e2') τ.
+  open_exprel_typed Γ (L1 ⊔ L2 ⊔ L3) (Case κ e0 e1 e2) (Case κ' e0' e1' e2') τ.
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind.
-  iApply H0; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
+  iApply H0; auto. eapply le_permissive_trans'; eauto.
+  { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
   iIntros (v v') "#Hvv'".
   dvals v v'; rfn_steps; change (of_val ?v .: subst_list (?es)) with (subst_list ((of_val v) :: es));
     repeat rewrite -fmap_cons.
-  - iApply H1; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
+  - iApply H1; auto. eapply le_permissive_trans'; eauto.
+    { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
     iNext. by simpl; auto.
-  - iApply H2; auto. eapply le_permissive_trans'; eauto. { intros ℓ ℓ' H. rewrite /disj. naive_solver. }
+  - iApply H2; auto. eapply le_permissive_trans'; eauto.
+    { intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
     iNext. by simpl; auto.
 Qed.
 
@@ -197,12 +197,14 @@ Section compat_cast.
 
   Lemma compat_cast (Γ : list type) (L : LabelRel) e e' ℓ ℓ' τ1 τ2 (H : consistency τ1 τ2)
     (H0 : open_exprel_typed Γ L e e' τ1) :
-    open_exprel_typed Γ (L ⋎ (fun x x' => x = ℓ ∧ x' = ℓ'))
+    open_exprel_typed Γ (L ⊔ (fun x x' => x = ℓ ∧ x' = ℓ'))
       (AppAn (of_val $ cast ℓ τ1 τ2 H) e) (AppAn (of_val $ cast ℓ' τ1 τ2 H) e') τ2.
   Proof.
     iIntros (Δ HΔ vs vs') "#Hvsvs'". repeat rewrite /= cast_closed.
-    iApply compat_cast. apply HΔ. { rewrite /disj. naive_solver. }
-    iApply H0; auto. eapply le_permissive_trans'; eauto. { intros y y' H'. rewrite /disj. naive_solver. }
+    iApply compat_cast. apply HΔ.
+    { rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
+    iApply H0; auto. eapply le_permissive_trans'; eauto.
+    { intros y y' H'. rewrite /join /join_LabelRel_inst /join_LabelRel. naive_solver. }
   Qed.
 
 End compat_cast.

@@ -37,19 +37,6 @@ Section dyn_emb.
                )
              )
            )
-          (* (LetIn (Fst (Var 0)) ) *)
-
-          (*  (BinOp binop (Ascribe ℓ Unknown (Base Int) (Fst $ Var 0)) *)
-          (*               (Ascribe ℓ Unknown (Base Int) (Snd $ Var 0))) *)
-        (* LetIn (dyn_emb e1) ( *)
-        (*   LetIn (dyn_emb e2).[ren (+1)] ( *)
-        (*     BinOp binop (Ascribe ℓ Unknown (Base Int) (Var 1)) *)
-        (*                 (Ascribe ℓ Unknown (Base Int) (Var 0)))) *)
-        (* this does not even satisfy simplests of props; *)
-        (* true + Ω diverges... *)
-        (* BinOp binop *)
-        (*    (Ascribe ℓ Unknown (Base Int) (dyn_emb e1)) *)
-        (*    (Ascribe ℓ Unknown (Base Int) (dyn_emb e2)) *)
     | dyn_lang.definition.Var v =>
         Var v
     | dyn_lang.definition.Lam e =>
@@ -75,4 +62,4 @@ Section dyn_emb.
 
 End dyn_emb.
 
-Notation "⌜⌜ e ⌝⌝" := (dyn_emb e).
+Notation "⌈⌈ e ⌉⌉" := (dyn_emb e).

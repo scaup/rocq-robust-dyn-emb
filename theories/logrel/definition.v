@@ -39,10 +39,10 @@ Section logrel.
             | _, _ => False
             end)%I.
 
-  Definition arrow_rel (F1 F2 : siProp -> siProp) (Φ1 Φ2 : val -d> val -d> siProp) (L2 : label -> label -> Prop) :
+  Definition arrow_rel (MaybeLater : siProp -> siProp) (Φ1 Φ2 : val -d> val -d> siProp) (L2 : label -> label -> Prop) :
     val -d> val -d> siProp :=
     λ v v', (match v, v' with
-            | LamV e, LamV e' => (F1 (∀ w w', Φ1 w w' -∗ F2 (rfn Φ2 L2 e.[of_val w/] e'.[of_val w'/])))
+            | LamV e, LamV e' => (MaybeLater (∀ w w', Φ1 w w' -∗ rfn Φ2 L2 e.[of_val w/] e'.[of_val w'/]))
             | _, _ => False
             end)%I.
 
@@ -55,7 +55,7 @@ Section logrel.
             | LitV LitUnit, LitV LitUnit => unit_rel v v'
             | LitV (LitBool _), LitV (LitBool _) => bool_rel v v'
             | LitV (LitInt _), LitV (LitInt _) => int_rel v v'
-            | LamV _, LamV _ => (arrow_rel bi_later id Ψ Ψ Δ) v v'
+            | LamV _, LamV _ => (arrow_rel bi_later Ψ Ψ Δ) v v'
                                  (* only a later at the start to enforce contractiveness *)
             | InjLV _, InjLV _ => sum_rel (later_rfn Ψ) (later_rfn Ψ) v v'
             | InjRV _, InjRV _ => sum_rel (later_rfn Ψ) (later_rfn Ψ) v v'
@@ -69,7 +69,7 @@ Section logrel.
     intros n P1 P2 dl v v'.
     destruct v, v'; (try destruct (_ : base_lit)); auto.
     - rewrite /arrow_rel. apply later_contractive. constructor. intros.
-      do 5 f_equiv. by apply dl. f_equiv. apply rfn_proper. by apply dl.
+      do 5 f_equiv. by apply dl. apply rfn_proper. by apply dl.
     - rewrite /sum_rel; solve_contractive.
     - rewrite /sum_rel; solve_contractive.
     - rewrite /prod_rel. f_equiv; solve_contractive.
@@ -93,7 +93,7 @@ Section logrel.
                  | Int => int_rel v v'
                  end
       | Bin bin τ1 τ2 => match bin with
-                        | Arrow => arrow_rel id id (valrel_typed τ1 Δ) (valrel_typed τ2 Δ) Δ v v'
+                        | Arrow => arrow_rel id (valrel_typed τ1 Δ) (valrel_typed τ2 Δ) Δ v v'
                                  (* only a later for the return expressions; such that they are equivalent to app; \x.e w ~ \x.e' w' *)
                         | Sum => sum_rel (valrel_typed τ1 Δ) (valrel_typed τ2 Δ) v v'
                         | Product => prod_rel (valrel_typed τ1 Δ) (valrel_typed τ2 Δ) v v'
@@ -104,19 +104,14 @@ Section logrel.
   Definition exprel_typed (τ : type) (Δ : LabelRel) : expr -d> expr -d> siProp :=
     λ e e', rfn (valrel_typed τ Δ) Δ e e'.
 
-  (* Definition less_possibilities_then : relation LabelRel := *)
-  (*   fun Δ1 Δ2 => ∀ ℓ ℓ', Δ2 ℓ ℓ' -∗ Δ1 ℓ ℓ'. *)
-
-  (* Notation "a ⪯ b" := (less_possibilities_then a b) (at level 30). *)
-
 End logrel.
 
 Definition open_exprel_typed (Γ : list type) (L : LabelRel) (e e' : expr) (τ : type) : Prop :=
-  ∀ (Δ : LabelRel) (H : le_permissive L Δ) (vs vs' : list val),
+  ∀ (Δ : LabelRel) (H : L ⊑ Δ) (vs vs' : list val),
       big_sepL3 (fun τ v v' => valrel_typed τ Δ v v') Γ vs vs' ⊢
           exprel_typed τ Δ e.[subst_list (of_val <$> vs)] e'.[subst_list (of_val <$> vs')].
 
-Lemma open_exprel_typed_weaken (L L' : LabelRel) (H : le_permissive L L')
+Lemma open_exprel_typed_weaken (L L' : LabelRel) (H : L ⊑ L')
   (Γ : list type) (e e' : expr) (τ : type) :
   open_exprel_typed Γ L e e' τ → open_exprel_typed Γ L' e e' τ.
 Proof. intros. intros Δ HL'Δ. apply H0. by eapply le_permissive_trans'. Qed.
@@ -141,14 +136,14 @@ From main.dyn_lang Require Import contexts.
 
 Definition ctx_rel_typed (L : LabelRel) (C C' : ctx)
   (Γ : list type)(*hole*) (τ : type)(*hole*) (Γout : list type)(*outer*) (τout : type)(*outer*) : Prop :=
-  ∀ L' (H : le_permissive L L') e e' (Hee' : open_exprel_typed Γ L' e e' τ),
+  ∀ L' (H : L ⊑ L') e e' (Hee' : open_exprel_typed Γ L' e e' τ),
       open_exprel_typed Γout L' (fill_ctx C e) (fill_ctx C' e') τout.
 
 Lemma ctx_rel_typed_weaken C C' (L L' : LabelRel) (H : le_permissive L L')
   (Γ1 Γ2 : list type) (τ1 τ2 : type) :
   ctx_rel_typed L C C' Γ1 τ1 Γ2 τ2 → ctx_rel_typed L' C C' Γ1 τ1 Γ2 τ2.
 Proof.
-  intros. intros Δ HL'Δ e e' Hee'. apply H0; auto. eapply le_permissive_trans; eauto. Qed.
+  intros. intros Δ HL'Δ e e' Hee'. apply H0; auto. eapply le_permissive_trans_inst; eauto. Qed.
 
 (* Lemma open_exprel_typed_compose L12 L23 Γ1 Γ2 Γ3 C12 C12' C23 C23' τ1 τ2 τ3 : *)
 (*   ctx_rel_typed L12 C12 C12' Γ1 τ1 Γ2 τ2 → *)
