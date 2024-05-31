@@ -14,10 +14,10 @@
 -arg -w -arg -unknown-warning
 
 # search lemmas etc in stuff
-theories/search/stdlib.v
-theories/search/stdpp.v
+# theories/search/stdlib.v
+# theories/search/stdpp.v
 theories/search/iris.v
-theories/search/heap_lang.v
+# theories/search/heap_lang.v
 theories/search/autosubst.v
 
 # prelude stuff
@@ -26,6 +26,7 @@ theories/prelude/big_op_three.v
 theories/prelude/autosubst.v
 theories/prelude/base_lang.v
 theories/prelude/labels.v
+theories/prelude/lists.v
 
 # dynamic language
 theories/dyn_lang/definition.v
@@ -66,7 +67,6 @@ theories/logrel/lemmas/fun_grad_into_dyn.v
 
 theories/logrel/adequacy.v
 
-theories/prelude/lists.v
 
 # linker
 theories/maps/linker/components/common.v
