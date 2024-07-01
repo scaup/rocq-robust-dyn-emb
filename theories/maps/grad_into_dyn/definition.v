@@ -31,7 +31,9 @@ Section expr.
 
 End expr.
 
-Notation "⌊ e ⌋" := (trns e).
+Notation "⟨ e ⟩" := (trns e).
+(* corresponds to ⌊ _ ⌋ in paper; latter is quite confusing in unicode though so we avoid it *)
+
 
 From main.grad_lang Require Import contexts.
 From main.dyn_lang Require Import contexts.
@@ -72,10 +74,10 @@ Section contexts.
     trns_ctx_item <$> C.
 
   Lemma trns_fill_ctx_item Ci e :
-    ⌊ grad_lang.contexts.fill_ctx_item Ci e ⌋ = fill_ctx_item (trns_ctx_item Ci) ⌊ e ⌋.
+    ⟨ grad_lang.contexts.fill_ctx_item Ci e ⟩ = fill_ctx_item (trns_ctx_item Ci) ⟨ e ⟩.
   Proof. destruct Ci; eauto. Qed.
   Lemma trns_fill_ctx C e :
-    ⌊ grad_lang.contexts.fill_ctx C e ⌋ = fill_ctx (trns_ctx C) ⌊ e ⌋.
+    ⟨ grad_lang.contexts.fill_ctx C e ⟩ = fill_ctx (trns_ctx C) ⟨ e ⟩.
   Proof. induction C; auto. by rewrite /= -IHC trns_fill_ctx_item. Qed.
 
   Lemma trns_ctx_app C C' : trns_ctx (C ++ C') = trns_ctx C ++ trns_ctx C'.

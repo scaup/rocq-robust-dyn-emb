@@ -11,12 +11,6 @@ From iris.proofmode Require Import tactics.
 From main.logrel Require Import definition lemmas.compats.
 From main.maps Require Import grad_into_dyn.definition.
 
-Lemma open_exprel_typed_weaken (L L' : LabelRel) (Γ : list type) (e e' : expr) (τ : type) :
-  open_exprel_typed Γ L e e' τ →
-  L ⊑ L' →
-  open_exprel_typed Γ L' e e' τ.
-Proof. intros. intros Δ HL'Δ. apply H. by eapply le_permissive_trans'. Qed.
-
 Section fundamental.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
@@ -25,7 +19,7 @@ Section fundamental.
     by rewrite /InGradExpr /diagonal /join /join_LabelRel_inst /join_LabelRel; intros x x'; set_solver.
 
   Lemma fundamental Γ e τ (H : typed Γ e τ) :
-    open_exprel_typed Γ (InGradExpr e) (⌊ e ⌋) (⌊ e ⌋) τ.
+    open_exprel_typed Γ (InGradExpr e) (⟨ e ⟩) (⟨ e ⟩) τ.
   Proof.
     induction H; simpl; rewrite /InGradExpr /=.
     - by apply compat_var.

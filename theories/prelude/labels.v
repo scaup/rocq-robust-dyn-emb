@@ -51,7 +51,7 @@ Definition diagonal (L : label → Prop) : LabelRel :=
 Definition combine_LabelRel (L L' : LabelRel) : LabelRel :=
   fun ℓ1 ℓ3 => ∃ ℓ2, L ℓ1 ℓ2 ∧ L' ℓ2 ℓ3.
 
-Notation "L ∘ L'" := (combine_LabelRel L L').
+Notation "L ⋅ L'" := (combine_LabelRel L L') (at level 10).
 
 (* ⊑ froms preorder; todo *)
 (* --------------------------- *)
@@ -107,3 +107,9 @@ Definition elemhood {A : Type} (ℓs : listset A) : A → Prop :=
   fun ℓ => ℓ ∈ ℓs.
 
 Coercion elemhood : listset >-> Funclass.
+
+(* (* asdf *) *)
+(* --------------------------- *)
+
+Instance join_LabelPred_inst : Join (label → Prop) :=
+  fun L L' => fun l => L l ∨ L' l.

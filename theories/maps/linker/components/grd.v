@@ -1,11 +1,7 @@
-From main.prelude Require Import imports autosubst base_lang lists labels.
-From main.grad_lang Require Import types.
-From main.grad_lang Require Import definition contexts labels.
-From main.maps.linker.components Require Import common.
+From main.prelude Require Import imports.
+From main.grad_lang Require Import definition contexts.
 
-(* Notation App := App. *)
-
-Section components.
+Section grd.
 
   Definition LamN (n : nat) : expr → expr := Nat.iter n Lam.
 
@@ -17,12 +13,14 @@ Section components.
   Definition AppWithList_ctx (ts : list expr) : ctx :=
     CTX_AppL <$> ts.
 
-  Definition wrap_ctx_vars_ascribe_up (ℓ : label) (Γ : list type) : list expr :=
-    imap (fun l τ => (Ascribe ℓ τ Unknown (Var l))) Γ.
+  Definition WrapVars (Ks : list (expr → expr)) : list expr :=
+    imap (fun l K => (K (Var l))) Ks.
 
-End components.
+End grd.
 
-From main.grad_lang Require Import typing.
+From main.prelude Require Import imports labels lists.
+From main.grad_lang Require Import labels contexts types typing.
+From main.maps.linker.components Require Import common.
 
 Section lemmas.
 
@@ -36,11 +34,12 @@ Section lemmas.
     labels_ctx (AppWithList_ctx fs) ≡ fold_right (fun (e : expr) (L : listset label) => L ∪ labels_expr e) ∅ fs.
   Proof. induction fs. by simpl. simpl. rewrite IHfs. set_solver. Qed.
 
-  Lemma AppWithList_ctx_wrap_ctx_vars_ascribe_up_lables ℓ Γ :
-    labels_ctx (AppWithList_ctx (wrap_ctx_vars_ascribe_up ℓ Γ)) ⊆ {[ ℓ ]}.
+  Lemma AppWithList_ctx_wrap_ctx_vars_ascribe_up_lables ℓ (Γ : list type) :
+    labels_ctx (AppWithList_ctx (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ))) ⊆ {[ ℓ ]}.
   Proof.
     induction Γ using rev_ind. simpl. set_solver.
-    rewrite /AppWithList_ctx /wrap_ctx_vars_ascribe_up. rewrite imap_app fmap_app.
+    rewrite /AppWithList_ctx /WrapVars.
+    rewrite fmap_app /=. rewrite imap_app. rewrite fmap_app.
     rewrite labels_ctx_app. set_solver.
   Qed.
 
@@ -85,13 +84,13 @@ Section lemmas.
   Qed.
 
   Lemma wrap_ctx_vars_ascribe_up_typed ℓ Γ :
-    Forall (fun a => typed Γ a Unknown) (wrap_ctx_vars_ascribe_up ℓ Γ).
+    Forall (fun a => typed Γ a Unknown) (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ)).
   Proof.
-    rewrite /wrap_ctx_vars_ascribe_up.
+    rewrite /WrapVars.
     induction Γ using rev_ind. constructor.
-    rewrite imap_app. apply Forall_app. split.
+    rewrite fmap_app imap_app. apply Forall_app. split.
     eapply (Forall_impl _ _ _ IHΓ). { intros. by apply typed_app_r. }
-    repeat constructor. apply list_lookup_middle. lia.
+    repeat constructor. apply list_lookup_middle. rewrite fmap_length. lia.
   Qed.
 
 End lemmas.

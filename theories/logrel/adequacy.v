@@ -33,10 +33,10 @@ Proof.
     exists ℓ'. split; auto. apply rtc_step_step_ne_to_error. eauto.
 Qed.
 
-
-Lemma refineL_trans (L L' : LabelRel) e1 e2 e3
+Lemma refineL_trans (L L' : LabelRel) {Lf} {e1} e2 {e3}
+  (Hf : L ⋅ L' ⊑ Lf)
   (H12 : RefineL L e1 e2) (H23 : RefineL L' e2 e3) :
-  RefineL (combine_LabelRel L L') e1 e3.
+  RefineL Lf e1 e3.
 Proof.
   split.
   - destruct H12 as [R12 _]; destruct H23 as [R23 _].
@@ -44,5 +44,18 @@ Proof.
   - destruct H12 as [_ R12]; destruct H23 as [_ R23]. intros ℓ1 H1.
     destruct (R12 ℓ1 H1) as (ℓ2 & L12 & H2). clear R12.
     destruct (R23 ℓ2 H2) as (ℓ3 & L23 & H3). clear R23.
-    exists ℓ3. split; auto. exists ℓ2. split; auto.
+    exists ℓ3. split; auto. apply Hf. exists ℓ2. split; auto.
 Qed.
+
+Notation "e ≤{ L } e' " := (RefineL L e e') (at level 10).
+
+Definition EquiBehaveL (L : label → Prop) (e e' : expr) : Prop :=
+    e ≤{diagonal L} e' ∧ e' ≤{diagonal L} e.
+
+Notation "e ≡{ L } e' " := (EquiBehaveL L e e') (at level 10).
+
+Lemma RefineL_weaken {L L' e e'} :
+  RefineL L e e' →
+  (L ⊑ L') →
+  RefineL L' e e'.
+Proof. intros; destruct H. split; naive_solver. Qed.

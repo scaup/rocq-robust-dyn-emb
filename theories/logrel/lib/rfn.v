@@ -44,18 +44,18 @@ Section rfn.
     - by eapply rtc_transitive.
   Qed.
 
-  Lemma rfn_bind' K e K' e' Ψ Φ L :
-    ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L (fill K e) (fill K' e').
+  Lemma rfn_bind_with_termination K e K' e' Ψ Φ L :
+    ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ ⌜ rtc step_ne e (of_val v) ⌝ -∗ ⌜ rtc step_ne e' (of_val v') ⌝ -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L (fill K e) (fill K' e').
   Proof.
     iIntros "Hee' Hc". rewrite /rfn.
-    iApply (wp_bind with "[Hee' Hc]").
+    iApply (wp_bind_with_termination with "[Hee' Hc]").
     iApply (wp_impl with "Hee'").
     { iIntros (ℓ). iApply bi.pure_mono. rewrite /lbl_lift_r.
       intros (t' & ℓ' & He't & Hf & Hl). exists (fill K' t'), ℓ'. repeat split; auto.
       - eapply rtc_congruence; eauto. intros. by eapply fill_step.
       - by eapply fill_faulty. }
-    iIntros (v) "H".  iDestruct "H" as (v') "[%Hsteps HΨ]".
-    iSpecialize ("Hc" with "HΨ").
+    iIntros (v) "H %Hsteps".  iDestruct "H" as (v') "[%Hsteps' HΨ]".
+    iSpecialize ("Hc" with "HΨ"). iSpecialize ("Hc" $! Hsteps Hsteps').
     iApply (wp_impl with "Hc").
     { iIntros (ℓ). iApply bi.pure_mono. apply eval_stable_lbl_lift_r.
       eapply rtc_congruence; eauto. intros. by eapply fill_step. }
@@ -70,6 +70,13 @@ Section rfn.
     rewrite /rfn. iApply (wp_impl with "He").
     - iIntros (ℓ) "%H". iPureIntro. destruct H as (t' & ℓ' & Hs & Hf & HL). exists t', ℓ'. naive_solver.
     - iIntros (v) "H". iDestruct "H" as (v') "(Hs & HΦ)". iExists v'. iFrame. by iApply "Hv".
+  Qed.
+
+  Lemma rfn_bind' K e K' e' Ψ Φ L :
+    ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L (fill K e) (fill K' e').
+  Proof.
+    iIntros "Hee' Hc". iApply (rfn_bind_with_termination with "Hee'").
+    iIntros (v v') "Hvv' Hs Hs'". by iApply "Hc".
   Qed.
 
   Lemma rfn_val v1 v2 e1 (H1 : e1 = of_val v1) e2 (H2 : e2 = of_val v2) Φ L : Φ v1 v2 ⊢ rfn Φ L e1 e2.
@@ -91,6 +98,11 @@ Section rfn.
      (HL : ∀ ℓ, lbl_lift_r L ℓ e2 → lbl_lift_r L ℓ e1)
     : ⊢ rfn Φ L e e2 -∗ rfn Φ L e e1.
   Proof. iIntros "H". iApply (wp_impl with "H"); eauto. Qed.
+
+  Lemma rfn_steps_l {e e1} e2 {Φ L}
+     (H : rtc step_ne e1 e2)
+    : ⊢ rfn Φ L e2 e -∗ rfn Φ L e1 e.
+  Proof. by iApply wp_rtc. Qed.
 
   Lemma rfn_steps_r {e e1} e2 {Φ L}
      (H : rtc step_ne e1 e2)

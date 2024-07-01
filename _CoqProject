@@ -77,7 +77,11 @@ theories/maps/linker/components/lemmas.v
 
 theories/maps/linker/definition.v
 
-theories/theorems/imported_wb_innocent.v
+theories/theorems.v
 
+# other
 
-# theorems
+theories/logrel/examples/help.v
+theories/logrel/examples/main.v
+
+# theories/logrel/examples/main.v

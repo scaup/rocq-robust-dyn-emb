@@ -43,31 +43,26 @@ Section wp.
   Lemma wp_faulty Φ L e ℓ (H : faulty e ℓ) : L ℓ ⊢ wp Φ L e.
   Proof. iIntros "HΦ". rewrite wp_unfold /wp_pre. by iExists (Is_Faulty _ _ H). Qed.
 
-  Lemma wp_bind K e Φ L :
-    ⊢ wp (fun v => wp Φ L (fill K (of_val v))) L e -∗ wp Φ L (fill K e).
-  Proof.
-    iIntros "Hwp". iLöb as "HLöb" forall (e).
-    (* checkout reason for wp e ... *)
-    rewrite (wp_unfold _ _ e) /wp_pre /=.
-    iDestruct "Hwp" as (C) "HCe".
-    destruct C as [v -> | ℓ H | e' Hstep ].
-    - (* value case is trivial *) auto.
-    - (* faulty case as well very easy *)
-      iApply wp_faulty; [apply (fill_faulty _ _ H K) | auto ].
-    - (* step case where we use lob induction *)
-      rewrite (wp_unfold _ _ (fill K e)) /wp_pre /=.
-      assert (Hstep' : step_ne (fill K e) (fill K e')).
-      { inversion_clear Hstep. repeat rewrite -fill_app. by eapply SNE_Normal. }
-      iExists (Take_NE_Step _ _ Hstep').
-      iNext. by iApply "HLöb".
-  Qed.
-
   Lemma wp_s {e2} {e1} (H : step_ne e1 e2) Φ L :
     ▷ wp Φ L e2 ⊢ wp Φ L e1.
   Proof.
     iIntros "H".
     rewrite (wp_unfold _ _ e1) /wp_pre.
     by iExists (Take_NE_Step _ _ H).
+  Qed.
+
+  Lemma wp_nsteps {e2} {e1} {n} (H : nsteps step_ne n e1 e2) Φ L :
+    ▷^n wp Φ L e2 ⊢ wp Φ L e1.
+  Proof.
+    induction H. auto.
+    simpl. iIntros "H". iApply wp_s. eauto. iNext. by iApply IHnsteps.
+  Qed.
+
+  Lemma wp_rtc {e2} {e1} (H : rtc step_ne e1 e2) Φ L :
+    wp Φ L e2 ⊢ wp Φ L e1.
+  Proof. iIntros "H".
+    destruct (rtc_nsteps_1 _ _ H) as [n Hn].
+    iApply wp_nsteps; eauto.
   Qed.
 
   Lemma wp_s_inv {e2} {e1} (H : step_ne e1 e2) Φ L :
@@ -127,6 +122,31 @@ Section wp.
   Lemma wp_impl_val e Φ Φ' L :
     ⊢ wp Φ' L e -∗ (∀ v, Φ' v -∗ Φ v) -∗ wp Φ L e.
   Proof. iIntros "He Hv". by iApply (wp_impl with "He"); [ intros; auto | ]. Qed.
+
+  Lemma wp_bind_with_termination K e Φ L :
+    ⊢ wp (fun v => ⌜ rtc step_ne e (of_val v) ⌝ -∗ wp Φ L (fill K (of_val v))) L e -∗ wp Φ L (fill K e).
+  Proof.
+    iIntros "Hwp". iLöb as "HLöb" forall (e).
+    (* checkout reason for wp e ... *)
+    rewrite (wp_unfold _ _ e) /wp_pre /=.
+    iDestruct "Hwp" as (C) "HCe".
+    destruct C as [v -> | ℓ H | e' Hstep ].
+    - (* value case is trivial *) iApply "HCe". iPureIntro. apply rtc_refl.
+    - (* faulty case as well very easy *)
+      iApply wp_faulty; [apply (fill_faulty _ _ H K) | auto ].
+    - (* step case where we use lob induction *)
+      rewrite (wp_unfold _ _ (fill K e)) /wp_pre /=.
+      assert (Hstep' : step_ne (fill K e) (fill K e')).
+      { inversion_clear Hstep. repeat rewrite -fill_app. by eapply SNE_Normal. }
+      iExists (Take_NE_Step _ _ Hstep').
+      iNext. iApply "HLöb". iApply (wp_impl_val with "HCe").
+      iIntros (v) "H %Hs". iApply "H".
+      iPureIntro. eapply rtc_l; eauto.
+  Qed.
+
+  Lemma wp_bind K e Φ L :
+    ⊢ wp (fun v => wp Φ L (fill K (of_val v))) L e -∗ wp Φ L (fill K e).
+  Proof. iIntros "H". iApply wp_bind_with_termination. iApply (wp_impl_val with "H"); auto.  Qed.
 
  Lemma wp_bind' K e Ψ Φ L :
     ⊢ wp Ψ L e -∗ (∀ v, Ψ v -∗ wp Φ L (fill K (of_val v))) -∗ wp Φ L (fill K e).

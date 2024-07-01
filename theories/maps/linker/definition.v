@@ -11,7 +11,7 @@ Section linker.
 
   (* todo; generalize to list of labels? *)
   Definition linker (ℓ : label) (Γ : list type) (τ : type) : ctx :=
-     AppWithList_ctx (wrap_ctx_vars_ascribe_up ℓ Γ)
+     AppWithList_ctx (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ))
   ++ LamN_ctx (length Γ)
   ++ [ CTX_Ascribe ℓ Unknown τ ].
 
@@ -22,7 +22,7 @@ Section linker.
   Proof.
     apply (typed_ctx_compose _ Γ _ _ _ _ (LamN_type (replicate (length Γ) Unknown) τ)).
     apply AppWithList_ctx_typed'.
-    { apply Forall2_replicate_l. by rewrite /wrap_ctx_vars_ascribe_up imap_length.
+    { apply Forall2_replicate_l. by rewrite /WrapVars imap_length fmap_length.
       apply wrap_ctx_vars_ascribe_up_typed. }
     apply (typed_ctx_compose _ (replicate (length Γ) Unknown ++ Γ) _ _ _ _ τ).
     rewrite <- (app_nil_l Γ) at 4.
@@ -84,6 +84,19 @@ Section lemmas.
     repeat rewrite -fill_ctx_app /=.
     rewrite fill_LamN_ctx fill_AppWithList_ctx.
     apply open_exprel_superfluous_ctx_l; auto.
+  Qed.
+
+  Lemma linker_superfluous_r L ℓ Γ e e' (HCe' : Closed_n (length Γ) e') τ :
+    open_exprel_typed Γ L e e' τ →
+    open_exprel_typed Γ L e (fill_ctx (trns_ctx (linker ℓ Γ τ)) e') τ.
+  Proof.
+    intro Hee'.
+    rewrite /linker. repeat rewrite trns_ctx_app.
+    rewrite AppWithList_ctx_agree LamN_ctx_agree /=.
+    rewrite wrap_ctx_vars_ascribe_up_agree /=.
+    repeat rewrite -fill_ctx_app /=.
+    rewrite fill_LamN_ctx fill_AppWithList_ctx.
+    apply open_exprel_superfluous_ctx_r; auto.
   Qed.
 
 End lemmas.
