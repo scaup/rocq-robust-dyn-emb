@@ -9,6 +9,31 @@ From iris.proofmode Require Import tactics.
 From main.logrel Require Import definition.
 From main.maps Require Import dyn_embedding.definition grad_into_dyn.definition.
 
+From main.grad_lang Require Import typing.
+
+Section typing.
+
+  Context {ν : label} {Hν : NeverOccurs ν}.
+
+  Lemma dyn_emb_typed e n : Closed_n n e →
+    typed (replicate n Unknown) (⌈⌈ e ⌉⌉) Unknown.
+  Proof.
+    revert n.
+    induction e; intros; simpl; (repeat econstructor);
+        (try by eapply IHe0; closed_solver);
+        (try by eapply IHe; closed_solver);
+        (try by eapply IHe1; closed_solver);
+        (try by eapply IHe2; closed_solver);
+        (try by eapply IHe3; closed_solver).
+    assert (H' := (ids_lt_Closed_n v n)).
+    apply lookup_replicate_2. apply H'.  apply H.
+    eapply (IHe (S n)). closed_solver.
+    apply (IHe0 (S n)). closed_solver.
+    apply (IHe1 (S n)). closed_solver.
+  Qed.
+
+End typing.
+
 Section fundamental.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
@@ -112,7 +137,8 @@ Section fundamental.
       iApply (IHe2 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
       iIntros (v2 v2') "#H2". asimpl.
       rfn_steps. rfn_val. rewrite (valrel_unknown_unfold _ (PairV _ _)). by iFrame "H1 H2".
-    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; set_solver.
+    - asimpl. rfn_steps. iApply (rfn_faulty); try by faulty_solver. eexists [], _; eauto.
+      apply HΔ; split; set_solver.
   Qed.
 
 
@@ -215,7 +241,8 @@ Section fundamental.
       iApply (IHe2 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
       iIntros (v2 v2') "#H2". asimpl.
       rfn_steps. rfn_val. rewrite (valrel_unknown_unfold _ (PairV _ _)). by iFrame "H1 H2".
-    - asimpl. iApply rfn_faulty; try by eexists [], _; split; auto. apply HΔ. split; set_solver.
+    - asimpl. rfn_steps. iApply (rfn_faulty); try by faulty_solver. eexists [], _; eauto.
+      apply HΔ; split; set_solver.
   Qed.
 
 
@@ -233,5 +260,6 @@ Section fundamental.
         (try by rewrite IHe2; [auto | closed_solver]);
         (try by rewrite IHe3; [auto | closed_solver]).
   Qed.
+
 
 End fundamental.

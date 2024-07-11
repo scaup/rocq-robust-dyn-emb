@@ -23,7 +23,7 @@ Inductive expr :=
   | Snd (e : expr)
   | Pair (e1 e2 : expr)
   (* error *)
-  | Error (ℓ : label)
+  (* | Error (ℓ : label) *)
   (* Easier if we have source type, then translation is easier *)
   (* Also a proof of consistency? *)
   (* | Cast (τ1 τ2 : type) (e : expr) *)

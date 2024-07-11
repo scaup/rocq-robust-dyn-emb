@@ -1,6 +1,6 @@
 From main Require Import imports.  (* prelude.autosubst. *)
 From main.dyn_lang Require Import definition.  (* lib. *)
-From main.grad_lang Require Import types definition.
+From main.grad_lang Require Import types definition typing.
 
 (* The dynamic embedding, of the dynamic language into the gradual one. *)
 
@@ -30,10 +30,11 @@ Section dyn_emb.
         LetIn (Pair (dyn_emb e1) (dyn_emb e2)) (
           LetIn (Fst (Var 0)) (
             LetIn (Snd (Var 1)) (
-                  BinOp binop
-                     (Ascribe ℓ Unknown (Base Int) (Var 1))
-                     (Ascribe ℓ Unknown (Base Int) (Var 0))
-
+                  (Ascribe ℓ (binop_res_type binop) Unknown
+                      (BinOp binop
+                          (Ascribe ℓ Unknown (Base Int) (Var 1))
+                          (Ascribe ℓ Unknown (Base Int) (Var 0)))
+                  )
                )
              )
            )
@@ -55,7 +56,8 @@ Section dyn_emb.
         Snd (Ascribe ℓ Unknown (Bin Product Unknown Unknown) (dyn_emb e))
     | dyn_lang.definition.Pair e1 e2 =>
         AscribeAn (Bin Product Unknown Unknown) Unknown (Pair (dyn_emb e1) (dyn_emb e2))
-    | dyn_lang.definition.Error ℓ => Error ℓ
+    | dyn_lang.definition.Error ℓ => Ascribe ℓ (Base Bool) Unknown (Ascribe ℓ Unknown (Base Bool)
+                                        (Ascribe ℓ (Base Unit) Unknown (Lit LitUnit)))
     end.
 
   (* (at level 4, e at next level). *)

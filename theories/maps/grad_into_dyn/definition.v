@@ -25,7 +25,7 @@ Section expr.
     | grad_lang.definition.Fst e => Fst ν (trns e)
     | grad_lang.definition.Snd e => Snd ν (trns e)
     | grad_lang.definition.Pair e1 e2 => Pair (trns e1) (trns e2)
-    | grad_lang.definition.Error ℓ => Error ℓ
+    (* | grad_lang.definition.Error ℓ => (Lit LitUnit) *)
     | Ascribe ℓ τ1 τ2 e => App ν (of_val $ cast' ℓ τ1 τ2) (trns e)
     end.
 
