@@ -42,6 +42,7 @@ theories/grad_lang/definition.v
 
 # maps
 theories/maps/dyn_embedding/definition.v
+theories/maps/dyn_embedding/typing.v
 theories/maps/grad_into_dyn/definition.v
 
 # logrel
