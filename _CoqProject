@@ -38,16 +38,16 @@ theories/dyn_lang/labels.v
 theories/dyn_lang/contexts.v
 
 # cast calc
-theories/grad_lang/types.v
-theories/grad_lang/definition.v
+theories/cast_calc/types.v
+theories/cast_calc/definition.v
 
 # standard semantics for cast calculus
 
-theories/grad_lang/dynamics/std.v
-theories/grad_lang/dynamics/lemmas.v
-theories/grad_lang/dynamics/simul/invariant.v
-theories/grad_lang/dynamics/simul/prog_pres.v
-theories/grad_lang/dynamics/simul/equiv.v
+theories/cast_calc/dynamics/std.v
+theories/cast_calc/dynamics/lemmas.v
+theories/cast_calc/dynamics/simul/invariant.v
+theories/cast_calc/dynamics/simul/prog_pres.v
+theories/cast_calc/dynamics/simul/equiv.v
 
 # maps
 theories/maps/dyn_embedding/definition.v
@@ -70,9 +70,9 @@ theories/logrel/lemmas/fun_dyn_embedding.v
 theories/logrel/lib/recursion.v
 
 # grad typing cont
-theories/grad_lang/typing.v
-theories/grad_lang/contexts.v
-theories/grad_lang/labels.v
+theories/cast_calc/typing.v
+theories/cast_calc/contexts.v
+theories/cast_calc/labels.v
 
 # # casts compat
 theories/logrel/lemmas/compats.v

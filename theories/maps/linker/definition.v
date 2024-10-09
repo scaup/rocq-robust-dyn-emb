@@ -1,11 +1,11 @@
 From main.prelude Require Import imports labels.
-From main.grad_lang Require Import definition types typing contexts.
+From main.cast_calc Require Import definition types typing contexts.
 From main.maps.linker.components Require Import common dyn grd.
 
-(* Notation gexpr := grad_lang.definition.expr. *)
+(* Notation gexpr := cast_calc.definition.expr. *)
 (* Notation dexpr := dyn_lang.definition.expr. *)
-(* Notation gVar := grad_lang.definition.Var. *)
-(* Notation gApp := grad_lang.definition.Var. *)
+(* Notation gVar := cast_calc.definition.Var. *)
+(* Notation gApp := cast_calc.definition.Var. *)
 
 Section linker.
 
@@ -33,7 +33,7 @@ Section linker.
 End linker.
 
 From main.prelude Require Import autosubst.
-From main.grad_lang Require Import labels.
+From main.cast_calc Require Import labels.
 From main.maps Require Import grad_into_dyn.definition.
 From main.logrel Require Import definition lemmas.fun_grad_into_dyn.
 From main.dyn_lang Require Import definition contexts.
@@ -52,7 +52,7 @@ Section lemmas.
     2: { apply fundamental_ctx. apply linker_typed. }
     rewrite /linker.
     intros l l' Hll'.
-    rewrite /InGradCtx /diagonal in Hll'.
+    rewrite /InCastCalcCtx /diagonal in Hll'.
     assert (Ha := AppWithList_ctx_wrap_ctx_vars_ascribe_up_lables ℓ Γ).
     (* Set Printing Coercions. *)
     rewrite /elemhood in Hll'.

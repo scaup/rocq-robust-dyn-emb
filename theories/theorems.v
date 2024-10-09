@@ -1,23 +1,23 @@
 From main.prelude Require Import imports autosubst.
 From main.maps Require Import
   dyn_embedding.definition dyn_embedding.typing linker.definition grad_into_dyn.definition.
-From main.grad_lang Require Import definition types typing contexts labels.
-From main.grad_lang.dynamics Require Import std simul.equiv.
+From main.cast_calc Require Import definition types typing contexts labels.
+From main.cast_calc.dynamics Require Import std simul.equiv.
 From main.dyn_lang Require Import definition contexts labels casts.
 From main.logrel Require Import definition adequacy.
 From main.logrel.lemmas Require Import fun_grad_into_dyn fun_dyn_embedding.
 
 Notation dexpr := dyn_lang.definition.expr.
-Notation gexpr := grad_lang.definition.expr.
+Notation gexpr := cast_calc.definition.expr.
 
-Notation gctx := grad_lang.contexts.ctx.
+Notation gctx := cast_calc.contexts.ctx.
 
 Notation dfill_ctx := dyn_lang.contexts.fill_ctx.
-Notation gfill_ctx := grad_lang.contexts.fill_ctx.
+Notation gfill_ctx := cast_calc.contexts.fill_ctx.
 
 Ltac rw_labelrel :=
     (repeat
-        ((try rewrite /InGradCtx);
+        ((try rewrite /InCastCalcCtx);
         (try rewrite /InDynExpr);
         (try rewrite /diagonal);
         (try rewrite /combine_LabelRel);
@@ -33,7 +33,7 @@ Section refined_dyn_emb_criterion.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  Notation cc_Error := grad_lang.definition.Error.
+  Notation cc_Error := cast_calc.definition.Error.
 
   Definition robust_up_to (L : label → Prop) Γ (e : gexpr) τ : Prop :=
     Γ ⊢ e : τ  ∧
@@ -73,13 +73,13 @@ Section refined_dyn_emb_criterion.
   Theorem general_theorem_lose_import ℓ Γ L (e e' : dexpr) (H : Closed_n (length Γ) e) τ
     (Hee' : open_exprel_typed Γ L e e' τ)
     (C : gctx) τ' (HC : typed_ctx C Γ τ [] τ') :
-       ⟨gfill_ctx C (import ℓ Γ τ e)⟩ ≤{L ⊔ (InGradCtx C)}
+       ⟨gfill_ctx C (import ℓ Γ τ e)⟩ ≤{L ⊔ (InCastCalcCtx C)}
           (fill_ctx (trns_ctx C) e').
   Proof.
     repeat rewrite trns_fill_ctx.
     apply (refineL_trans
-              ((InGradCtx C) ⊔ (diagonal ({[ ℓ ]} : listset label)) ⊔ (InDynExpr e))
-              ((InGradCtx C) ⊔ L)
+              ((InCastCalcCtx C) ⊔ (diagonal ({[ ℓ ]} : listset label)) ⊔ (InDynExpr e))
+              ((InCastCalcCtx C) ⊔ L)
                 (dfill_ctx (trns_ctx C)
                      (dfill_ctx (trns_ctx (linker ℓ Γ τ)) e))); [le_perm_solver | | ].
     - (* taking care of dyn embedding *)
@@ -119,14 +119,14 @@ Section rrhp_sem_typed.
   Theorem general_theorem_gain_import ℓ Γ L (e e' : dexpr) (H : Closed_n (length Γ) e') τ
     (Hee' : open_exprel_typed Γ L e e' τ)
     (C : gctx) τ' (HC : typed_ctx C Γ τ [] τ') :
-    RefineL (L ⊔ (InGradCtx C))
+    RefineL (L ⊔ (InCastCalcCtx C))
        (fill_ctx (trns_ctx C) e)
        ⟨gfill_ctx C (import ℓ Γ τ e')⟩.
   Proof.
     repeat rewrite trns_fill_ctx.
     apply (refineL_trans
-              ((InGradCtx C) ⊔ L)
-              ((InGradCtx C) ⊔ (diagonal ({[ ℓ ]} : listset label)) ⊔ (InDynExpr e'))
+              ((InCastCalcCtx C) ⊔ L)
+              ((InCastCalcCtx C) ⊔ (diagonal ({[ ℓ ]} : listset label)) ⊔ (InDynExpr e'))
                 (dfill_ctx (trns_ctx C)
                      (dfill_ctx (trns_ctx (linker ℓ Γ τ)) e'))); [le_perm_solver | | ].
     - (* superfluous linker *)
@@ -163,7 +163,7 @@ Section rrhp_untyped.
 
   Theorem general_theorem_gain_dyn_emb n (e : dexpr) (H : Closed_n n e)
     (C : gctx) τ (HC : typed_ctx C (replicate n Unknown) Unknown [] τ) :
-    RefineL (InGradCtx C ⊔ InDynExpr e)
+    RefineL (InCastCalcCtx C ⊔ InDynExpr e)
        (fill_ctx (trns_ctx C) e)
        ⟨gfill_ctx C ⌈⌈ e ⌉⌉⟩.
   Proof.
@@ -176,7 +176,7 @@ Section rrhp_untyped.
 
   Theorem general_theorem_lose_dyn_emb n (e : dexpr) (H : Closed_n n e)
     (C : gctx) τ (HC : typed_ctx C (replicate n Unknown) Unknown [] τ) :
-    RefineL (InGradCtx C ⊔ InDynExpr e)
+    RefineL (InCastCalcCtx C ⊔ InDynExpr e)
        ⟨gfill_ctx C ⌈⌈ e ⌉⌉⟩
        (fill_ctx (trns_ctx C) e).
   Proof.

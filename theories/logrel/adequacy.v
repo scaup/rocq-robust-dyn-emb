@@ -1,5 +1,5 @@
 From main.prelude Require Import imports labels autosubst.
-(* From main.grad_lang Require Import types. *)
+(* From main.cast_calc Require Import types. *)
 From main.dyn_lang Require Import definition lemmas labels.
 From main.logrel Require Import definition lib.rfn lib.weakestpre.
 

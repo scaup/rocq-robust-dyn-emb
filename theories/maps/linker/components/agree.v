@@ -1,5 +1,5 @@
 From main.prelude Require Import imports autosubst base_lang lists labels.
-From main.grad_lang Require Import definition types.
+From main.cast_calc Require Import definition types.
 From main.dyn_lang Require Import definition contexts lib casts.
 From main.maps Require Import grad_into_dyn.definition.
 From main.maps.linker.components Require Import dyn grd.

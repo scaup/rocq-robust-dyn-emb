@@ -1,5 +1,5 @@
 From main.prelude Require Import imports autosubst big_op_three.
-From main.grad_lang Require Import types definition typing labels contexts.
+From main.cast_calc Require Import types definition typing labels contexts.
 From main.dyn_lang Require Import definition lemmas tactics lib casts contexts.
 From main.logrel.lib Require Import weakestpre rfn small_helpers.
 
@@ -16,12 +16,12 @@ Section fundamental.
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Ltac permissive_solver :=
-    by rewrite /InGradExpr /diagonal /join /join_LabelRel_inst /join_LabelRel; intros x x'; set_solver.
+    by rewrite /InCastCalcExpr /diagonal /join /join_LabelRel_inst /join_LabelRel; intros x x'; set_solver.
 
   Lemma fundamental Γ e τ (H : typed Γ e τ) :
-    open_exprel_typed Γ (InGradExpr e) (⟨ e ⟩) (⟨ e ⟩) τ.
+    open_exprel_typed Γ (InCastCalcExpr e) (⟨ e ⟩) (⟨ e ⟩) τ.
   Proof.
-    induction H; simpl; rewrite /InGradExpr /=.
+    induction H; simpl; rewrite /InCastCalcExpr /=.
     - by apply compat_var.
     - by apply compat_base.
     - eapply open_exprel_typed_weaken.
@@ -59,12 +59,12 @@ Section fundamental.
   Ltac permissive_solver'  :=
     try by (lazymatch goal with
             | H : _ ⊑ _ |- _ ⊑ _ =>
-                rewrite /InGradCtx_item /InGradExpr /diagonal /labels_ctx_item /join /join_LabelRel_inst /join_LabelRel in H |- *;
+                rewrite /InCastCalcCtx_item /InCastCalcExpr /diagonal /labels_ctx_item /join /join_LabelRel_inst /join_LabelRel in H |- *;
                 intros x x'; specialize (H x x'); set_solver end).
 
 
   Lemma fundamental_ctx_item Ci Γ τ Γ' τ' (HCi : typed_ctx_item Ci Γ τ Γ' τ') :
-    ctx_rel_typed (InGradCtx_item Ci) [trns_ctx_item Ci] [trns_ctx_item Ci] Γ τ Γ' τ'.
+    ctx_rel_typed (InCastCalcCtx_item Ci) [trns_ctx_item Ci] [trns_ctx_item Ci] Γ τ Γ' τ'.
   Proof.
     intros L HCiL e e' Hee'.
     simpl. destruct HCi; simpl.
@@ -108,10 +108,10 @@ Section fundamental.
   Qed.
 
   Lemma fundamental_ctx C Γ τ Γ' τ' (HC : typed_ctx C Γ τ Γ' τ') :
-    ctx_rel_typed (InGradCtx C) (trns_ctx C) (trns_ctx C) Γ τ Γ' τ'.
+    ctx_rel_typed (InCastCalcCtx C) (trns_ctx C) (trns_ctx C) Γ τ Γ' τ'.
   Proof.
     intros L HCiL e e' Hee'. induction HC; simpl. auto.
-    eapply fundamental_ctx_item; eauto. rewrite /InGradCtx in HCiL.
+    eapply fundamental_ctx_item; eauto. rewrite /InCastCalcCtx in HCiL.
     apply (le_permissive_trans' _ _ _ HCiL). apply le_permissive_diagonal. intros k Hk; set_solver.
     apply IHHC.
     apply (le_permissive_trans' _ _ _ HCiL). apply le_permissive_diagonal. intros k Hk; set_solver.

@@ -1,5 +1,5 @@
 From main.prelude Require Import imports.
-From main.grad_lang Require Import definition contexts.
+From main.cast_calc Require Import definition contexts.
 
 Section grd.
 
@@ -19,13 +19,13 @@ Section grd.
 End grd.
 
 From main.prelude Require Import imports labels lists.
-From main.grad_lang Require Import labels contexts types typing.
+From main.cast_calc Require Import labels contexts types typing.
 From main.maps.linker.components Require Import common.
 
 Section lemmas.
 
-  Lemma LamN_ctx_no_lables n : InGradCtx (grd.LamN_ctx n) ⊑ ⊥.
-  Proof. rewrite /InGradCtx /diagonal. intros l l'. induction n; set_solver. Qed.
+  Lemma LamN_ctx_no_lables n : InCastCalcCtx (grd.LamN_ctx n) ⊑ ⊥.
+  Proof. rewrite /InCastCalcCtx /diagonal. intros l l'. induction n; set_solver. Qed.
 
   Lemma LamN_ctx_lables n : labels_ctx (grd.LamN_ctx n) ≡ ∅.
   Proof. induction n; set_solver. Qed.
