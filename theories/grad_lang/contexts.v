@@ -21,7 +21,7 @@ Inductive ctx_item :=
   | CTX_IfR (e0 : expr) (e1 : expr)
   | CTX_SeqL (e2 : expr)
   | CTX_SeqR (e1 : expr)
-  | CTX_Ascribe (ℓ : label) (τ1 τ2 : type).
+  | CTX_Cast (ℓ : label) (τ1 τ2 : type).
 
 Definition fill_ctx_item (ctx : ctx_item) (e : expr) : expr :=
   match ctx with
@@ -44,7 +44,7 @@ Definition fill_ctx_item (ctx : ctx_item) (e : expr) : expr :=
   | CTX_IfR e0 e1 => If e0 e1 e
   | CTX_SeqL e2 => Seq e e2
   | CTX_SeqR e1 => Seq e1 e
-  | CTX_Ascribe ℓ τ1 τ2 => Ascribe ℓ τ1 τ2 e
+  | CTX_Cast ℓ τ1 τ2 => Cast ℓ τ1 τ2 e
   end.
 
 Notation ctx := (list ctx_item).

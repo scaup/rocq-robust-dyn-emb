@@ -37,16 +37,17 @@ theories/dyn_lang/tactics.v
 theories/dyn_lang/labels.v
 theories/dyn_lang/contexts.v
 
-# surface lang
+# cast calc
 theories/grad_lang/types.v
 theories/grad_lang/definition.v
 
-# cast calculus
-theories/cast_calc/definition.v
-theories/cast_calc/lemmas.v
-theories/cast_calc/typing.v
-theories/cast_calc/simul/invariant.v
-theories/cast_calc/simul/prog_pres.v
+# standard semantics for cast calculus
+
+theories/grad_lang/dynamics/std.v
+theories/grad_lang/dynamics/lemmas.v
+theories/grad_lang/dynamics/simul/invariant.v
+theories/grad_lang/dynamics/simul/prog_pres.v
+theories/grad_lang/dynamics/simul/equiv.v
 
 # maps
 theories/maps/dyn_embedding/definition.v
@@ -65,11 +66,8 @@ theories/logrel/lemmas/compat_cast_help.v
 theories/logrel/lemmas/casts_superfluous.v
 theories/logrel/lemmas/fun_dyn_embedding.v
 
-
-
 # lib
 theories/logrel/lib/recursion.v
-
 
 # grad typing cont
 theories/grad_lang/typing.v
@@ -79,9 +77,7 @@ theories/grad_lang/labels.v
 # # casts compat
 theories/logrel/lemmas/compats.v
 theories/logrel/lemmas/fun_grad_into_dyn.v
-
 theories/logrel/adequacy.v
-
 
 # linker
 theories/maps/linker/components/common.v
@@ -92,11 +88,10 @@ theories/maps/linker/components/lemmas.v
 
 theories/maps/linker/definition.v
 
-theories/theorems.v
-
 # other
 
 theories/logrel/examples/help.v
 theories/logrel/examples/main.v
-
 theories/logrel/examples/tautology.v
+
+theories/theorems.v

@@ -1,8 +1,6 @@
-From main.prelude Require Import base_lang labels imports.
-From main.grad_lang Require Import types.
-
-(* Important; we don't have labels anymore on destructors. *)
-(* Only on cast constructs *)
+From main.prelude Require Import imports autosubst.
+From main.prelude Require Export labels base_lang.
+From main.grad_lang Require Export types.
 
 Inductive expr :=
   (* base values *)
@@ -11,13 +9,13 @@ Inductive expr :=
   | If (e0 e1 e2 : expr)
   | BinOp (binop : bin_op) (e1 e2 : expr)
   (* functions *)
-  | Var (v : nat)
-  | Lam (e : expr)
+  | Var (v : var)
+  | Lam (e : {bind 1 of expr})
   | App (e1 e2 : expr)
   (* sums *)
   | InjL (e : expr)
   | InjR (e : expr)
-  | Case (e0 : expr) (e1 e2 : expr)
+  | Case (e0 : expr) (e1 e2 : {bind 1 of expr})
   (* pairs *)
   | Fst (e : expr)
   | Snd (e : expr)
@@ -28,4 +26,6 @@ Inductive expr :=
   (* Also a proof of consistency? *)
   (* | Cast (τ1 τ2 : type) (e : expr) *)
   (* We want translation from surface to cast calculus to be definable without typing derivation... *)
-  | Ascribe (ℓ : label) (τ1 τ2 : type) (e : expr).
+  | Cast (ℓ : label) (τ1 τ2 : type) (e : expr)
+  | Error (ℓ : label).
+  (* | Ascribe (ℓ : label) (τ1 τ2 : type) (e : expr). *)

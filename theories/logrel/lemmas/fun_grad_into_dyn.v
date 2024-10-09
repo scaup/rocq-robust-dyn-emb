@@ -51,6 +51,9 @@ Section fundamental.
       eapply open_exprel_typed_weaken.
       eauto using compat_cast.
       permissive_solver.
+    - iIntros (Δ HΔ vs vs') "Hvsvs'".
+      iApply (rfn_faulty _ ℓ ltac:(by eexists [], (Error ℓ); eauto) _ ℓ ltac:(by eexists [], (Error ℓ); eauto)).
+      delta_solver.
   Qed.
 
   Ltac permissive_solver'  :=

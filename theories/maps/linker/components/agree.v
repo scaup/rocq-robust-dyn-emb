@@ -29,7 +29,7 @@ Section agree.
   Qed.
 
   Lemma wrap_ctx_vars_ascribe_up_agree (ℓ : label) (Γ : list type) :
-    trns <$> (grd.WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ)) = dyn.WrapVars ((fun τ => App ν (of_val $ cast' ℓ τ Unknown)) <$> Γ).
+    trns <$> (grd.WrapVars ((fun τ => Cast ℓ τ Unknown) <$> Γ)) = dyn.WrapVars ((fun τ => App ν (of_val $ cast' ℓ τ Unknown)) <$> Γ).
   Proof.
     rewrite /grd.WrapVars /dyn.WrapVars.
     rewrite fmap_imap. repeat rewrite imap_fmap. apply imap_ext.

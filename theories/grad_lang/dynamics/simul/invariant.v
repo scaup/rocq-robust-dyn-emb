@@ -1,16 +1,16 @@
 From main Require Import imports prelude.autosubst prelude.tactics.
 (* From main.grad_lang Require Import types definition. *)
-From main.grad_lang Require Import types.
-From main.cast_calc Require Import definition typing.
+From main.grad_lang Require Import types typing.
+From main.grad_lang.dynamics Require Import std lemmas.
 From main.dyn_lang Require Import definition casts lib lemmas tactics.
 
-Notation cc_expr := cast_calc.definition.expr.
+Notation cc_expr := grad_lang.definition.expr.
 Notation dn_expr := dyn_lang.definition.expr.
 
-Notation cc_of_val := cast_calc.definition.of_val.
+Notation cc_of_val := std.of_val.
 
-Notation cc_Error := cast_calc.definition.Error.
-Notation cc_fill := cast_calc.definition.fill.
+Notation cc_Error := grad_lang.definition.Error.
+Notation cc_fill := std.fill.
 
 Section simul_map.
 
@@ -20,22 +20,22 @@ Section simul_map.
 
   Fixpoint simul_expr (e : cc_expr) : expr :=
     match e with
-    | cast_calc.definition.Lit b => Lit b
-    | cast_calc.definition.Seq e1 e2 => Seq ν ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.If e0 e1 e2 => If ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.BinOp binop e1 e2 => BinOp ν binop ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.Var v => Var v
-    | cast_calc.definition.Lam e => Lam ⌜e⌝
-    | cast_calc.definition.App e1 e2 => App ν ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.InjL e => InjL ⌜e⌝
-    | cast_calc.definition.InjR e => InjR ⌜e⌝
-    | cast_calc.definition.Case e0 e1 e2 => Case ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.Fst e => Fst ν ⌜e⌝
-    | cast_calc.definition.Snd e => Snd ν ⌜e⌝
-    | cast_calc.definition.Pair e1 e2 => Pair ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.Lit b => Lit b
+    | grad_lang.definition.Seq e1 e2 => Seq ν ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.If e0 e1 e2 => If ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.BinOp binop e1 e2 => BinOp ν binop ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.Var v => Var v
+    | grad_lang.definition.Lam e => Lam ⌜e⌝
+    | grad_lang.definition.App e1 e2 => App ν ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.InjL e => InjL ⌜e⌝
+    | grad_lang.definition.InjR e => InjR ⌜e⌝
+    | grad_lang.definition.Case e0 e1 e2 => Case ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
+    | grad_lang.definition.Fst e => Fst ν ⌜e⌝
+    | grad_lang.definition.Snd e => Snd ν ⌜e⌝
+    | grad_lang.definition.Pair e1 e2 => Pair ⌜e1⌝ ⌜e2⌝
     | Cast ℓ τ1 τ2 e =>
         App ν (of_val $ cast' ℓ τ1 τ2) ⌜e⌝
-    | cast_calc.definition.Error ℓ => Error ℓ
+    | grad_lang.definition.Error ℓ => Error ℓ
     end where "⌜ e ⌝" := (simul_expr e).
 
 End simul_map.
@@ -47,38 +47,38 @@ Section invariant.
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Inductive Invariant : cc_expr → dn_expr → Prop :=
-  | I_Lit b : Invariant (cast_calc.definition.Lit b) (Lit b)
+  | I_Lit b : Invariant (grad_lang.definition.Lit b) (Lit b)
   | I_Seq e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.Seq e1 e2) (Seq ν e1' e2')
+      Invariant (grad_lang.definition.Seq e1 e2) (Seq ν e1' e2')
   | I_If e0 e0' (H1 : Invariant e0 e0')
       e1 e1' (H2 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.If e0 e1 e2) (If ν e0' e1' e2')
+      Invariant (grad_lang.definition.If e0 e1 e2) (If ν e0' e1' e2')
   | I_BinOp binop e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.BinOp binop e1 e2) (BinOp ν binop e1' e2')
-  | I_Var x : Invariant (cast_calc.definition.Var x) (Var x)
+      Invariant (grad_lang.definition.BinOp binop e1 e2) (BinOp ν binop e1' e2')
+  | I_Var x : Invariant (grad_lang.definition.Var x) (Var x)
   | I_Lam e e' (H : Invariant e e') :
-      Invariant (cast_calc.definition.Lam e) (Lam e')
+      Invariant (grad_lang.definition.Lam e) (Lam e')
   | I_App ℓ e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.App e1 e2) (App ℓ e1' e2')
+      Invariant (grad_lang.definition.App e1 e2) (App ℓ e1' e2')
   | I_InjL e e' (H : Invariant e e') :
-      Invariant (cast_calc.definition.InjL e) (InjL e')
+      Invariant (grad_lang.definition.InjL e) (InjL e')
   | I_InjR e e' (H : Invariant e e') :
-      Invariant (cast_calc.definition.InjR e) (InjR e')
+      Invariant (grad_lang.definition.InjR e) (InjR e')
   | I_Case e0 e0' (H1 : Invariant e0 e0')
       e1 e1' (H2 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.Case e0 e1 e2) (Case ν e0' e1' e2')
+      Invariant (grad_lang.definition.Case e0 e1 e2) (Case ν e0' e1' e2')
   | I_Fst e e' (H : Invariant e e') :
-      Invariant (cast_calc.definition.Fst e) (Fst ν e')
+      Invariant (grad_lang.definition.Fst e) (Fst ν e')
   | I_Snd e e' (H : Invariant e e') :
-      Invariant (cast_calc.definition.Snd e) (Snd ν e')
+      Invariant (grad_lang.definition.Snd e) (Snd ν e')
   | I_Pair e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
-      Invariant (cast_calc.definition.Pair e1 e2) (Pair e1' e2')
+      Invariant (grad_lang.definition.Pair e1 e2) (Pair e1' e2')
   (* ..... *)
   (* for direct translation of cast *)
   | I_Cast ℓ τ1 τ2 e e' (H : Invariant e e') :
@@ -105,24 +105,24 @@ Section invariant.
   (* ..... *)
   (* relating errors *)
   | I_Error ℓ :
-      Invariant (cast_calc.definition.Error ℓ) (Error ℓ).
+      Invariant (grad_lang.definition.Error ℓ) (Error ℓ).
 
 End invariant.
 
-Notation cc_step := cast_calc.definition.step.
+Notation cc_step := grad_lang.dynamics.std.step.
 Notation dn_step := dyn_lang.definition.step.
 
-Notation cc_head_step := cast_calc.definition.head_step.
+Notation cc_head_step := grad_lang.dynamics.std.head_step.
 
 Notation dn_of_val := dyn_lang.definition.of_val.
 
-Notation cc_to_val := cast_calc.definition.to_val.
+Notation cc_to_val := grad_lang.dynamics.std.to_val.
 Notation dn_to_val := dyn_lang.definition.to_val.
 
-Notation cc_of_to_val := cast_calc.definition.of_to_val.
-Notation cc_to_of_val := cast_calc.definition.to_of_val.
+Notation cc_of_to_val := grad_lang.dynamics.std.of_to_val.
+Notation cc_to_of_val := grad_lang.dynamics.std.to_of_val.
 
-Notation cc_fill_app := cast_calc.lemmas.fill_app.
+Notation cc_fill_app := grad_lang.dynamics.lemmas.fill_app.
 
 Section basic_lemmas.
 
@@ -133,7 +133,7 @@ Section basic_lemmas.
     induction de; simpl; try by constructor.
   Qed.
 
-  Instance Var_Inj : Inj eq eq cast_calc.definition.Var. intros x1 x2 eq. by inversion eq. Qed.
+  Instance Var_Inj : Inj eq eq grad_lang.definition.Var. intros x1 x2 eq. by inversion eq. Qed.
 
   Lemma closed_Invariant e e' n : Invariant e e' →
       Closed_n n e → Closed_n n e'.
@@ -320,7 +320,7 @@ Section basic_lemmas.
   (* closedness would probably enough here, but who cares *)
   Lemma val_shape_Invariant v τ (Hv : typed [] (cc_of_val v) τ) v' :
       Invariant (cc_of_val v) (of_val v') →
-      cast_calc.definition.shape_val v = shape_val v'.
+      grad_lang.dynamics.std.shape_val v = shape_val v'.
   Proof.
     intros I. destruct v; inversion I; simplify_eq.
     - by destruct v'; inversion H; simplify_eq.
@@ -330,19 +330,19 @@ Section basic_lemmas.
     - by destruct v'; inversion H0; simplify_eq.
     - inversion Hv; simplify_eq. simpl. clear G0 H1 H6.
       destruct G.
-      + destruct v; inversion H7; simplify_eq. inversion H3; simplify_eq.
+      + destruct v0; inversion H7; simplify_eq. inversion H3; simplify_eq.
         destruct v'0; inversion H; simplify_eq. destruct b; auto.
       + destruct bin.
-        * destruct v; inversion H7; simplify_eq.
+        * destruct v0; inversion H7; simplify_eq.
           -- inversion H3; simplify_eq. by destruct v'0; simplify_eq.
           -- inversion H3; simplify_eq. destruct v'0; inversion H6.
              by destruct v'0; inversion H10.
           -- inversion H3; simplify_eq. destruct v'0; inversion H8.
              by destruct v'0; inversion H4.
-        * destruct v; inversion H7; simplify_eq.
+        * destruct v0; inversion H7; simplify_eq.
           -- inversion H3; simplify_eq. by destruct v'0; simplify_eq.
           -- inversion H3; simplify_eq. by destruct v'0; inversion H0.
-        * destruct v; inversion H7; simplify_eq.
+        * destruct v0; inversion H7; simplify_eq.
           inversion H3; simplify_eq. by destruct v'0; inversion H.
     - by destruct v'; inversion H0; simplify_eq.
     - by destruct v'; inversion H0; simplify_eq.

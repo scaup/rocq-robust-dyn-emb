@@ -1,8 +1,7 @@
 From main Require Import imports prelude.autosubst prelude.tactics.
-(* From main.grad_lang Require Import types definition. *)
-From main.grad_lang Require Import types.
-From main.cast_calc Require Import definition typing lemmas.
-From main.cast_calc.simul Require Import invariant prog_pres.
+From main.grad_lang Require Import types definition typing lemmas.
+From main.grad_lang.dynamics Require Import std.
+From main.grad_lang.dynamics.simul Require Import invariant prog_pres.
 From main.dyn_lang Require Import definition casts lib lemmas tactics.
 
 Section universal.
@@ -38,7 +37,7 @@ Section simulation.
     destruct (universal e τ He (simul_expr e) (simul_expr_Invariant _ e _ He) k (cc_of_val v) Hksteps) as (Hτv & m & ev & _ & Hdmsteps & HIvev).
     invclear HIvev.
     2:{ exfalso. assert (Hmm := cc_to_of_val v). rewrite -H1 in Hmm.
-        by rewrite (cast_calc.lemmas.fill_not_val K) in Hmm. }
+        by rewrite (grad_lang.dynamics.lemmas.fill_not_val K) in Hmm. }
     destruct (left_val_Invariant _ _ HI _ Hτv v (cc_to_of_val v)) as (v' & Hsteps & HIvv').
     exists v'. split; eauto. eapply rtc_transitive. by eapply rtc_nsteps_2.
     eapply (rtc_congruence id); [| apply Hsteps ]. by apply step_ne_step.

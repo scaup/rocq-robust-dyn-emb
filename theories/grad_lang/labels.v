@@ -26,9 +26,9 @@ Fixpoint labels_expr (e : expr) : listset label :=
         labels_expr e
   | Pair e1 e2 =>
         labels_expr e1 ∪ labels_expr e2
-  (* | Error ℓ => *)
-        (* {[ ℓ ]} *)
-  | Ascribe ℓ τ1 τ2 e =>
+  | Error ℓ =>
+        {[ ℓ ]}
+  | Cast ℓ τ1 τ2 e =>
         {[ ℓ ]} ∪ labels_expr e
   end.
 
@@ -53,7 +53,7 @@ Definition labels_ctx_item (Ci : ctx_item) : listset label :=
   | CTX_IfR e0 e1 => labels_expr e0 ∪ labels_expr e1
   | CTX_SeqL e2 => labels_expr e2
   | CTX_SeqR e1 => labels_expr e1
-  | CTX_Ascribe ℓ τ1 τ2 => {[ ℓ ]}
+  | CTX_Cast ℓ τ1 τ2 => {[ ℓ ]}
   end.
 
 Definition labels_ctx (C : ctx) : listset label :=

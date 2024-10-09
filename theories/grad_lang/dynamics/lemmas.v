@@ -1,5 +1,5 @@
 From main.prelude Require Import imports base_lang tactics.
-From main.cast_calc Require Import definition.
+From main.grad_lang Require Import definition dynamics.std.
 
 Lemma fill_app K K' e : fill (K ++ K') e = fill K (fill K' e).
 Proof.
@@ -121,7 +121,6 @@ Proof.
   simplify_eq. destruct (IH K') as [K'' ->]; auto. by exists K''.
 Qed.
 
-
 Lemma head_step_det e e1 e2 : head_step e e1 → head_step e e2 → e1 = e2.
 Proof.
   intros H1 H2.
@@ -194,4 +193,201 @@ Proof.
     destruct Kred'; destruct Kred; simplify_eq. simpl in *.
     rewrite app_nil_r in H0. by eapply fill_inj.
     rewrite app_nil_r in H0. by eapply fill_inj.
+Qed.
+
+Require Import main.prelude.autosubst.
+From main.grad_lang Require Import definition typing.
+
+Lemma typed_Closed Γ e τ (de : Γ ⊢ e : τ) : Closed_n (length Γ) e.
+Proof.
+  induction de; intros σ; try by asimpl; (try by f_equal).
+  rewrite ids_subst_no; auto.  by eapply lookup_lt_Some.
+Qed.
+
+Lemma context_gen_weakening ξ Γ' Γ e τ :
+  Γ' ++ Γ ⊢ e : τ →
+  Γ' ++ ξ ++ Γ ⊢ e.[upn (length Γ') (ren (+ (length ξ)))] : τ.
+Proof.
+  intros H1.
+  remember (Γ' ++ Γ) as Ξ. revert Γ' Γ ξ HeqΞ.
+  induction H1 => Γ1 Γ2 ξ HeqΞ; subst; asimpl in *; eauto using typed.
+  - rewrite iter_up; destruct lt_dec as [Hl | Hl].
+    + constructor. rewrite lookup_app_l; trivial. by rewrite lookup_app_l in H.
+    + asimpl. constructor. rewrite lookup_app_r; auto with lia.
+      rewrite lookup_app_r; auto with lia.
+      rewrite lookup_app_r in H; auto with lia.
+      match goal with
+        |- _ !! ?A = _ => by replace A with (x - length Γ1) by lia
+      end.
+  - econstructor; eauto. by apply (IHtyped (_::_)).
+  - econstructor; eauto. by apply (IHtyped2 (_::_)). by apply (IHtyped3 (_::_)).
+Qed.
+
+Lemma context_weakening ξ Γ e τ :
+  Γ ⊢ e : τ → ξ ++ Γ ⊢ e.[(ren (+ (length ξ)))] : τ.
+Proof. eapply (context_gen_weakening _ []). Qed.
+
+Lemma typed_nil e τ : [] ⊢ e : τ  → ∀Γ, Γ ⊢ e : τ.
+Proof.
+  intros de Γ. replace Γ with (Γ ++ []) by by rewrite app_nil_r.
+  replace e with e.[ren (+ (length Γ))]. by apply context_weakening.
+  by rewrite (typed_Closed _ _ _ de).
+Qed.
+
+Lemma typed_gen_subst Γ1 Γ2 e1 τ1 e2 τ2 :
+  Γ1 ++ τ2 :: Γ2 ⊢ e1 : τ1 →
+  Γ2 ⊢ e2 : τ2 →
+  Γ1 ++ Γ2 ⊢ e1.[upn (length Γ1) (e2 .: ids)] : τ1.
+Proof.
+  remember (Γ1 ++ τ2 :: Γ2) as ξ. intros Ht. revert Γ1 Γ2 e2 τ2 Heqξ.
+  induction Ht => Γ1 Γ2 oe2 oτ2 Heqξ; asimpl in *; eauto using typed.
+  - subst. rewrite iter_up; destruct lt_dec as [Hl | Hl].
+    + econstructor.
+      match goal with
+        H : _ !! _ = Some _ |- _ => revert H
+      end.
+      rewrite !lookup_app_l; auto.
+    + asimpl. remember (x - length Γ1) as n. destruct n.
+       * match goal with
+           H : (Γ1 ++ oτ2 :: Γ2) !! x = Some τ |- _ =>
+           rewrite lookup_app_r in H; auto with lia; rewrite -Heqn in H;
+             inversion H; subst
+         end.
+         by apply context_weakening.
+       * asimpl.
+         match goal with
+           H : (Γ1 ++ oτ2 :: Γ2) !! x = Some τ |- _ =>
+           rewrite lookup_app_r in H; auto with lia; rewrite -Heqn in H;
+             inversion H; subst
+         end.
+         change (ids (length Γ1 + n)) with (@ids expr _ n).[ren (+(length Γ1))].
+         by apply context_weakening; constructor.
+  - econstructor; eauto.
+    eapply (IHHt (_ :: _)); eauto; by simpl; f_equal.
+  - econstructor; eauto.
+    + eapply (IHHt2 (_ :: _)); eauto; by simpl; f_equal.
+    + eapply (IHHt3 (_ :: _)); eauto; by simpl; f_equal.
+Qed.
+
+Lemma typed_subst Γ2 e1 τ1 e2 τ2 :
+  τ2 :: Γ2 ⊢ e1 : τ1 → Γ2 ⊢ e2 : τ2 → Γ2 ⊢ e1.[e2/] : τ1.
+Proof. apply (typed_gen_subst []). Qed.
+
+Lemma preservation_head_step Γ e e' τ : typed Γ e τ → head_step e e' → typed Γ e' τ.
+Proof.
+  intros He Hs.
+  inversion_clear Hs.
+  - inversion Hs0; simplify_eq.
+    + by inversion He.
+    + inversion He; by destruct b.
+    + inversion He; simplify_eq. destruct op; simpl; constructor.
+    + inversion He; simplify_eq. inversion_clear H3.
+      eapply typed_subst; eauto.
+      by erewrite of_to_val.
+    + inversion He; simplify_eq. inversion_clear H3.
+      eapply typed_subst; eauto.
+      by erewrite of_to_val.
+    + inversion He; simplify_eq. by inversion_clear H2.
+    + inversion He; simplify_eq. by inversion_clear H2.
+    + inversion He; simplify_eq.
+      eapply typed_subst; eauto. by inversion H2.
+  - inversion Hs0; simplify_eq; try by inversion He.
+    + inversion_clear He. by inversion_clear H2.
+    + constructor.
+    + destruct G; eauto. constructor. destruct bin; try by constructor.
+      inversion He. simplify_eq. inversion H3. simplify_eq. inversion H10. simplify_eq.
+      econstructor; eauto.
+    + inversion He. simplify_eq.
+      inversion H3. simplify_eq.
+      constructor. inversion H4; simplify_eq. auto.
+      eapply App_typed. eauto. eapply Cast_typed.
+      inversion H4. simplify_eq. by apply consistency_sym. auto.
+    + inversion He. simplify_eq. inversion H6; simplify_eq.
+      inversion H7; simplify_eq.
+      constructor; eauto. constructor; eauto.
+      constructor; eauto.
+    + inversion He. simplify_eq. inversion H6; simplify_eq.
+      inversion H5; simplify_eq.
+      constructor; eauto. constructor; eauto.
+    + inversion He. simplify_eq. inversion H6; simplify_eq.
+      inversion H5; simplify_eq.
+      constructor; eauto. constructor; eauto.
+    + inversion He. simplify_eq.
+      constructor; auto. constructor.
+      constructor; auto.
+      destruct G.
+      * destruct τ0; inversion H. simpl in H.
+        destruct τ0_1; try by inversion H.
+        destruct τ0_2; try by inversion H.
+      * simpl.
+        destruct τ0; inversion H.
+        destruct τ0_1; try by inversion H.
+        inversion H. simplify_eq. repeat constructor.
+        inversion H. simplify_eq. repeat constructor.
+        destruct τ0_2; try by inversion H2.
+        inversion H. simplify_eq. repeat constructor.
+        inversion H. simplify_eq.
+        repeat constructor. inversion H3.
+    + inversion He. simplify_eq. constructor.
+      * destruct τ; simplify_eq.
+        destruct G; simplify_eq.
+        inversion H.
+        destruct τ1; inversion H3.
+        destruct τ2; inversion H3. simpl in H.
+        destruct τ1; inversion H.
+        simplify_eq. simpl. repeat constructor.
+        simpl. repeat constructor.
+        simpl.
+        destruct τ2; inversion H; simplify_eq; repeat constructor.
+      * constructor; auto.
+        destruct τ; inversion H.
+        destruct τ1; inversion H3; repeat constructor.
+Qed.
+
+Definition typed_ectx_item (Ki : ectx_item) Γ τ τ' : Prop := (* evaluation context do not generate extre free variables *)
+  ∀ e, Γ ⊢ e : τ → Γ ⊢ (fill_item Ki e) : τ'.
+
+Lemma ectx_item_decompose Ki e Γ τ' : Γ ⊢ fill_item Ki e : τ' →
+  ∃ τ, Γ ⊢ e : τ ∧ typed_ectx_item Ki Γ τ τ'.
+Proof.
+  intros. destruct Ki; simpl in H; simpl;
+    (inversion H; simplify_eq; eexists  _; split; eauto; by econstructor).
+Qed.
+
+Definition typed_ectx (Ki : ectx) Γ τ τ' : Prop :=
+  ∀ e, Γ ⊢ e : τ → Γ ⊢ (fill Ki e) : τ'.
+
+Lemma ectx_decompose K e Γ τ' : Γ ⊢ fill K e : τ' →
+  ∃ τ, Γ ⊢ e : τ ∧ typed_ectx K Γ τ τ'.
+Proof.
+  generalize dependent e.
+  generalize dependent K. induction K as [|Ki K] using rev_ind; intros.
+  - exists τ'. split; auto; try by econstructor. by intros e'.
+  - rewrite fill_app in H. specialize (IHK (fill [Ki] e) H).
+    destruct IHK as (τ & HKie & HK).
+    simpl in HKie.
+    destruct (ectx_item_decompose _ _ _ _ HKie) as (τ'' & He & HKi).
+    exists τ''. split; auto. intros t Ht. rewrite fill_app. apply HK. by apply HKi.
+Qed.
+
+Lemma preservation Γ e e' τ : typed Γ e τ → step e e' → typed Γ e' τ.
+Proof.
+  intros He Hs. destruct Hs; try by constructor.
+  destruct (ectx_decompose _ _ _ _ He) as (τ' & Hd & HHH).
+  apply HHH.
+  eapply preservation_head_step; eauto.
+Qed.
+
+Lemma typed_shape G v : [] ⊢ (of_val v) : types.of_shape G → shape_val v = G.
+Proof.
+  intros H. destruct v; invclear H.
+  - destruct G; invclear H2.
+    by destruct b.
+  - by destruct G; invclear H1.
+  - by destruct G; invclear H5.
+  - destruct G; invclear H5.
+  - by destruct G; invclear H5.
+  - by destruct G; invclear H1.
+  - by destruct G; invclear H1.
+  - by destruct G; invclear H2.
 Qed.

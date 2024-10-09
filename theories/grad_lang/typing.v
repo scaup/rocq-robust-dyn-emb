@@ -1,4 +1,4 @@
-From main.prelude Require Import base_lang imports.
+From main.prelude Require Import base_lang imports autosubst.
 From main.grad_lang Require Import definition types.
 
 Definition binop_res_type (op : bin_op) : type :=
@@ -38,17 +38,12 @@ Inductive typed (Γ : list type) : expr → type → Prop :=
     Γ ⊢ e0 : Bin Sum τ1 τ2 → τ1 :: Γ ⊢ e1 : τ3 → τ2 :: Γ ⊢ e2 : τ3 →
     Γ ⊢ Case e0 e1 e2 : τ3
  (* assert! *)
- | Ascribe_typed ℓ τ1 τ2 (H : consistency τ1 τ2) e :
-    Γ ⊢ e : τ1 → Γ ⊢ Ascribe ℓ τ1 τ2 e : τ2
+ | Cast_typed ℓ τ1 τ2 (H : consistency τ1 τ2) e :
+    Γ ⊢ e : τ1 → Γ ⊢ Cast ℓ τ1 τ2 e : τ2
+ | Error_typed ℓ τ :
+    Γ ⊢ Error ℓ : τ
 
 where "Γ ⊢ e : τ" := (typed Γ e τ).
-
-Lemma typed_app_r Γ Γ' e τ (H : typed Γ e τ) :
-  typed (Γ ++ Γ') e τ.
-Proof.
-  induction H; try by econstructor.
-  econstructor. rewrite (lookup_app_l Γ Γ' x); eauto. by eapply lookup_lt_Some.
-Qed.
 
 From main.grad_lang Require Import contexts.
 
@@ -106,8 +101,8 @@ Inductive typed_ctx_item :
   | TP_CTX_SeqR Γ e1 τ :
     typed Γ e1 (Base Unit) →
     typed_ctx_item (CTX_SeqR e1) Γ τ Γ τ
-  | TP_CTX_Ascribe Γ ℓ τ1 τ2 (H : consistency τ1 τ2) :
-    typed_ctx_item (CTX_Ascribe ℓ τ1 τ2) Γ τ1 Γ τ2.
+  | TP_CTX_Cast Γ ℓ τ1 τ2 (H : consistency τ1 τ2) :
+    typed_ctx_item (CTX_Cast ℓ τ1 τ2) Γ τ1 Γ τ2.
 
 Lemma typed_ctx_item_typed k Γ τ Γ' τ' e :
   typed Γ e τ → typed_ctx_item k Γ τ Γ' τ' →
@@ -125,6 +120,13 @@ Inductive typed_ctx : ctx → list type → type → list type → type → Prop
 Lemma typed_ctx_typed K Γ τ Γ' τ' e :
   typed Γ e τ → typed_ctx K Γ τ Γ' τ' → typed Γ' (fill_ctx K e) τ'.
 Proof. induction 2; simpl; eauto using typed_ctx_item_typed. Qed.
+
+Lemma typed_app_r Γ Γ' e τ (H : typed Γ e τ) :
+  typed (Γ ++ Γ') e τ.
+Proof.
+  induction H; try by econstructor.
+  econstructor. rewrite (lookup_app_l Γ Γ' x); eauto. by eapply lookup_lt_Some.
+Qed.
 
 Lemma typed_ctx_item_app_r Ci Γ τ Γ' τ' τs :
   typed_ctx_item Ci Γ τ Γ' τ' →

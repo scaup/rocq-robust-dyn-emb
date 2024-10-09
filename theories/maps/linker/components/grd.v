@@ -35,7 +35,7 @@ Section lemmas.
   Proof. induction fs. by simpl. simpl. rewrite IHfs. set_solver. Qed.
 
   Lemma AppWithList_ctx_wrap_ctx_vars_ascribe_up_lables ℓ (Γ : list type) :
-    labels_ctx (AppWithList_ctx (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ))) ⊆ {[ ℓ ]}.
+    labels_ctx (AppWithList_ctx (WrapVars ((fun τ => Cast ℓ τ Unknown) <$> Γ))) ⊆ {[ ℓ ]}.
   Proof.
     induction Γ using rev_ind. simpl. set_solver.
     rewrite /AppWithList_ctx /WrapVars.
@@ -84,7 +84,7 @@ Section lemmas.
   Qed.
 
   Lemma wrap_ctx_vars_ascribe_up_typed ℓ Γ :
-    Forall (fun a => typed Γ a Unknown) (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ)).
+    Forall (fun a => typed Γ a Unknown) (WrapVars ((fun τ => Cast ℓ τ Unknown) <$> Γ)).
   Proof.
     rewrite /WrapVars.
     induction Γ using rev_ind. constructor.

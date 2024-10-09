@@ -11,9 +11,9 @@ Section linker.
 
   (* todo; generalize to list of labels? *)
   Definition linker (ℓ : label) (Γ : list type) (τ : type) : ctx :=
-     AppWithList_ctx (WrapVars ((fun τ => Ascribe ℓ τ Unknown) <$> Γ))
+     AppWithList_ctx (WrapVars ((fun τ => Cast ℓ τ Unknown) <$> Γ))
   ++ LamN_ctx (length Γ)
-  ++ [ CTX_Ascribe ℓ Unknown τ ].
+  ++ [ CTX_Cast ℓ Unknown τ ].
 
   Lemma linker_typed ℓ Γ τ :
     let n := length Γ in

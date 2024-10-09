@@ -25,8 +25,8 @@ Section expr.
     | grad_lang.definition.Fst e => Fst ν (trns e)
     | grad_lang.definition.Snd e => Snd ν (trns e)
     | grad_lang.definition.Pair e1 e2 => Pair (trns e1) (trns e2)
-    (* | grad_lang.definition.Error ℓ => (Lit LitUnit) *)
-    | Ascribe ℓ τ1 τ2 e => App ν (of_val $ cast' ℓ τ1 τ2) (trns e)
+    | Cast ℓ τ1 τ2 e => App ν (of_val $ cast' ℓ τ1 τ2) (trns e)
+    | grad_lang.definition.Error ℓ => Error ℓ
     end.
 
 End expr.
@@ -63,7 +63,7 @@ Section contexts.
     | grad_lang.contexts.CTX_IfR e0 e1 => CTX_IfR ν (trns e0) (trns e1)
     | grad_lang.contexts.CTX_SeqL e2 => CTX_SeqL ν (trns e2)
     | grad_lang.contexts.CTX_SeqR e1 => CTX_SeqR ν (trns e1)
-    | CTX_Ascribe ℓ τ1 τ2 => CTX_AppR ν (of_val $ cast' ℓ τ1 τ2)
+    | CTX_Cast ℓ τ1 τ2 => CTX_AppR ν (of_val $ cast' ℓ τ1 τ2)
         (* (CTX_AppR ν $ match consistency_decision τ1 τ2 with *)
         (*               | inl Pc => (of_val $ cast ℓ τ1 τ2 Pc) *)
         (*               | inr _ => Lit LitUnit *)

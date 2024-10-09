@@ -1,8 +1,8 @@
 From main Require Import imports prelude.autosubst prelude.tactics.
 (* From main.grad_lang Require Import types definition. *)
-From main.grad_lang Require Import types.
-From main.cast_calc Require Import definition typing lemmas.
-From main.cast_calc.simul Require Import invariant.
+From main.grad_lang Require Import types definition typing.
+From main.grad_lang.dynamics Require Import std lemmas.
+From main.grad_lang.dynamics.simul Require Import invariant.
 From main.dyn_lang Require Import definition casts lib lemmas tactics.
 
 Section progress_and_preservation.
@@ -338,8 +338,8 @@ Section progress_and_preservation.
   Qed.
 
 
-  Notation cc_fill_item := cast_calc.definition.fill_item.
-  Notation cc_fill := cast_calc.definition.fill.
+  Notation cc_fill_item := grad_lang.dynamics.std.fill_item.
+  Notation cc_fill := grad_lang.dynamics.std.fill.
 
   Definition Invariant_ectx_item Ki Ki' : Prop :=
       ∀ e e', Invariant e e' → Invariant (cc_fill_item Ki e) (fill_item Ki' e').
@@ -350,7 +350,7 @@ Section progress_and_preservation.
   Lemma Invariant_ectx_empty_l K : Invariant_ectx [] K → K = [].
   Proof.
     intros. destruct K as [|Ki K]; auto. exfalso.
-    specialize (H (cast_calc.definition.Lit LitUnit) (Lit LitUnit) ltac:(constructor)).
+    specialize (H (grad_lang.definition.Lit LitUnit) (Lit LitUnit) ltac:(constructor)).
     invclear H. destruct Ki; invclear H2.
   Qed.
 
@@ -411,7 +411,7 @@ Section progress_and_preservation.
     generalize dependent t.
     induction K as [|Ki K] using rev_ind; intros.
     - eexists [], t. simpl. (repeat split); [ refl | intros k k' Hkk'; eauto | auto ].
-    - rewrite cast_calc.lemmas.fill_app in Hτ HI.
+    - rewrite grad_lang.dynamics.lemmas.fill_app in Hτ HI.
       destruct (ectx_decompose _ _ _ _ Hτ) as (τ' & dKie & dK).
       assert (cc_to_val (cc_fill_item Ki e) = None) by by destruct e; destruct Ki; simpl; repeat rewrite cc_to_of_val; auto; simplify_option_eq.
       specialize (IHK t τ _ H Hτ HI) as (K' & e' & Hsteps & HKK' & HI'). simpl in dKie.
@@ -419,7 +419,7 @@ Section progress_and_preservation.
       exists (K' ++ [Ki']), t'; repeat split; auto.
       eapply rtc_transitive; eauto. rewrite fill_app.
       by apply rtc_pp_step_fill.
-      intros k k' Hkk'. rewrite fill_app cast_calc.lemmas.fill_app. apply HKK'. by apply HKiKi'.
+      intros k k' Hkk'. rewrite fill_app grad_lang.dynamics.lemmas.fill_app. apply HKK'. by apply HKiKi'.
   Qed.
 
   Inductive Invariant_EC : cc_expr → dn_expr → Prop :=

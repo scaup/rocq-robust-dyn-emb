@@ -1,7 +1,8 @@
 From main.prelude Require Import imports autosubst.
 From main.maps Require Import
-  dyn_embedding.definition linker.definition grad_into_dyn.definition.
+  dyn_embedding.definition dyn_embedding.typing linker.definition grad_into_dyn.definition.
 From main.grad_lang Require Import definition types typing contexts labels.
+From main.grad_lang.dynamics Require Import std simul.equiv.
 From main.dyn_lang Require Import definition contexts labels casts.
 From main.logrel Require Import definition adequacy.
 From main.logrel.lemmas Require Import fun_grad_into_dyn fun_dyn_embedding.
@@ -32,11 +33,27 @@ Section refined_dyn_emb_criterion.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
+  Notation cc_Error := grad_lang.definition.Error.
+
   Definition robust_up_to (L : label → Prop) Γ (e : gexpr) τ : Prop :=
+    Γ ⊢ e : τ  ∧
+    ∀ (C : gctx) τ' (HC : typed_ctx C Γ τ [] τ'),
+    (∀ ℓ, rtc std.step (gfill_ctx C e) (cc_Error ℓ) → L ℓ ∨ ℓ ∈ (labels_ctx C)).
+
+  Definition robust_up_to_alt (L : label → Prop) Γ (e : gexpr) τ : Prop :=
+    Γ ⊢ e : τ  ∧
     ∀ (C : gctx) τ' (HC : typed_ctx C Γ τ [] τ'),
     (∀ ℓ, rtc step ⟨ gfill_ctx C e ⟩ (Error ℓ) → L ℓ ∨ ℓ ∈ (labels_ctx C)).
 
+  Notation robust_alt := (robust_up_to_alt (fun _ => False)).
   Notation robust := (robust_up_to (fun _ => False)).
+
+  Lemma robust_up_to_alt_valid L Γ e τ :
+    robust_up_to_alt L Γ e τ → robust_up_to L Γ e τ.
+  Proof.
+    intros H. destruct H as [Heτ H]. split; auto. intros C τ' HC ℓ Hsteps. apply (H C τ' HC ℓ).
+    eapply ref_error; eauto. by eapply typed_ctx_typed.
+  Qed.
 
   Definition import ℓ Γ τ (e : dexpr) : gexpr :=
      gfill_ctx (linker ℓ Γ τ) ⌈⌈ e ⌉⌉.
@@ -77,12 +94,13 @@ Section refined_dyn_emb_criterion.
       apply linker_superfluous_l; auto.
   Qed.
 
-
   Theorem refined_dyn_emb_criterion_generalized Γ L (e : dexpr) τ
     (He : sem_typed_liable_to L Γ e τ) κ : robust_up_to L Γ (import κ Γ τ e) τ.
   Proof.
-    rewrite /robust_up_to. intros. destruct He as [He Hc].
-    assert (HRef := general_theorem_lose_import κ _ _ _ _ Hc _ He _ _ HC).
+    apply robust_up_to_alt_valid.
+    rewrite /robust_up_to. destruct He as [He Hc]. split.
+    { rewrite /import. eapply typed_ctx_typed; [| apply linker_typed]. by apply typed_app_r, dyn_emb_typed. }
+    intros. assert (HRef := general_theorem_lose_import κ _ _ _ _ Hc _ He _ _ HC).
     destruct HRef as [_ Hl]. specialize (Hl ℓ H). destruct Hl as (ℓ' & Hℓ' & _).
     revert Hℓ'. labelrel_solver.
   Qed.
@@ -91,9 +109,9 @@ Section refined_dyn_emb_criterion.
     (He : sem_typed Γ e τ) κ : robust Γ (import κ Γ τ e) τ.
   Proof. by apply refined_dyn_emb_criterion_generalized. Qed.
 
-
 End refined_dyn_emb_criterion.
 
+(* below just stated in terms of dynamic language... *)
 Section rrhp_sem_typed.
 
   Context {ν : label} {Hν : NeverOccurs ν}.

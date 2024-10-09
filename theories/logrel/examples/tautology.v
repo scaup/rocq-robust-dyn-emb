@@ -131,24 +131,4 @@ Section tautology_example.
     | S n => fun g => (taut_coq n (g false)) && (taut_coq n (g true))
     end.
 
-   Fixpoint taut_coq (n : nat) (g : dom_taut_coq n) : bool :=
-    match n with
-    | O => g
-    | S n => (taut_coq n (g false)) && (taut_coq n (g true))
-    end.
-
-  (* taut 0 g  =  g *)
-  (* taut n g  =  taut (n-1) (g false) && taut (n-1) (g true) *)
-
-
-
-    RecV (*n*) (*f*) (
-     If ν (isZero (Var 0(*n*)))
-     (* then *) (Lam (Var 0))
-     (* esle *) (Lam (*g*) (And ((Var 2(*r*)) (MinusOne (Var 1(*n*))) ((Var 0(*g*)) true))
-                                ((Var 2(*r*)) (MinusOne (Var 1(*n*))) ((Var 0(*g*)) false))))
-      ).
-
-
-
 End tautology_example.
