@@ -68,4 +68,23 @@ Section lib.
                   end
     end.
 
+  Definition of_shape' (ℓ : label) (G : shape) : val :=
+    match G with
+    | S_Base b => match b with
+                 | Unit => assert_unit ℓ
+                 | Bool => assert_bool ℓ
+                 | Int => assert_int ℓ
+                 end
+    | S_Bin bin => match bin with
+                  | Arrow => LamV (Lam (App ℓ (Var 1) (Var 0)))
+                  | Sum => LamV (Case ℓ (Var 0)
+                                  (InjL (Var 0))
+                                  (InjR (Var 0)))
+                  | Product => LamV (Pair (Fst ℓ (Var 0)) (Snd ℓ (Var 0)))
+                  (* | Product => LamV (LetIn (Fst ℓ (Var 0)) *)
+                  (*                     (LetIn (Snd ℓ (Var 1)) *)
+                  (*                        (Pair (Var 1) (Var 0)))) *)
+                  end
+    end.
+
 End lib.

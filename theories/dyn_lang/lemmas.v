@@ -1,4 +1,4 @@
-From main.prelude Require Import imports.
+From main.prelude Require Import imports tactics.
 From main.dyn_lang Require Import definition.
 
 Instance Var_Inj : Inj eq eq Var. intros x1 x2 eq. by inversion eq. Qed.
@@ -109,6 +109,15 @@ Lemma step_no_val e1 e2 :
 Proof.
   destruct 1; auto. apply fill_not_val.
   by eapply val_pure_head_stuck.
+Qed.
+
+Lemma step_no_val' e1 e2 :
+  step e1 e2 → to_val e1 = None.
+Proof.
+  destruct 1; auto. apply fill_not_val.
+  destruct HS. by invclear H.
+  by eapply val_pure_head_stuck.
+  by apply fill_not_val.
 Qed.
 
 Lemma pure_step_by_val K K' e1 e1' e2 :
@@ -403,4 +412,74 @@ Proof.
   - intros (t & Hf & Hs).
     apply (rtc_transitive _ t).
     by apply (rtc_congruence id _ _ _ step_ne_step). by apply step_faulty_error.
+Qed.
+
+Lemma Error_step_absurd ℓ e : step (Error ℓ) e → False.
+Proof.
+  intros abs. invclear abs.
+  - destruct K as [|Ki K]; simpl in *; simplify_eq.
+    + invclear HS. invclear H.
+      invclear H.
+    + destruct Ki; invclear H0.
+  - destruct K as [|Ki K]; simpl in *; simplify_eq.
+    destruct Ki; invclear H.
+Qed.
+
+Lemma head_step_not_error_fill e e' :
+  head_step e e' → ∀ K, step (fill K e) (fill K e').
+Proof.
+  intros. by constructor.
+Qed.
+
+Lemma step_not_error_fill_item :
+  ∀ Ki e e' (He' : ¬ ∃ ℓ, e' = Error ℓ) (Hs : step e e'), step (fill_item Ki e) (fill_item Ki e').
+Proof.
+  intros. destruct Hs.
+  - change (fill_item Ki (fill K ?e)) with (fill [Ki] (fill K e)). repeat rewrite -fill_app.
+    by constructor.
+  - exfalso. apply He'. by exists ℓ.
+Qed.
+
+Lemma step_not_error_fill :
+  ∀ K e e' (He' : ¬ ∃ ℓ, e' = Error ℓ) (Hs : step e e'), step (fill K e) (fill K e').
+Proof.
+  intros K. generalize dependent K.
+  induction K as [|Ki K] using rev_ind. auto.
+  intros. do 2 rewrite fill_app. apply IHK.
+  intros abs. destruct abs as [ℓ abs]. destruct Ki; inversion abs.
+  by apply step_not_error_fill_item.
+Qed.
+
+Lemma rtc_step_not_error_fill e :
+  ∀ e', rtc step e e' -> ∀ (He' : ¬ ∃ ℓ, e' = Error ℓ) K, rtc step (fill K e) (fill K e').
+Proof.
+  apply (rtc_ind_r (fun e' => (∀ (He' : ¬ ∃ ℓ, e' = Error ℓ) K, rtc step (fill K e) (fill K e')))); [ left; apply rtc_refl |  ].
+  intros.
+  apply (rtc_transitive _ (fill K y)). apply H1; auto.
+  intro absurd. destruct absurd as [ℓ ->]. by eapply Error_step_absurd.
+  apply rtc_once. apply step_not_error_fill; auto.
+Qed.
+
+Definition K_error e := ∃ K ℓ, (e = fill K (Error ℓ)).
+
+Lemma not_K_error_step_fill_item :
+  ∀ Ki e e' (He' : ¬ K_error e) (Hs : step e e'), step (fill_item Ki e) (fill_item Ki e').
+Proof.
+  intros. destruct Hs.
+  - change (fill_item Ki (fill K ?e)) with (fill [Ki] (fill K e)). repeat rewrite -fill_app.
+    by constructor.
+  - exfalso. apply He'. by exists K, ℓ.
+Qed.
+
+Lemma not_K_error_step_fill :
+  ∀ K e e' (He : ¬ K_error e) (Hs : step e e'), step (fill K e) (fill K e').
+Proof.
+  intros K. generalize dependent K.
+  induction K as [|Ki K] using rev_ind. auto.
+  intros. do 2 rewrite fill_app. apply IHK.
+  intros abs. apply He. destruct abs as (K' & ℓ & abs).
+  destruct (pure_step_by_val' _ _ _ _ _ abs ltac:(by eapply step_no_val') ltac:(by right) ) as (K'' & ->).
+  rewrite fill_app in abs.
+  exists K'', ℓ. eapply fill_inj. apply abs.
+  by apply not_K_error_step_fill_item.
 Qed.

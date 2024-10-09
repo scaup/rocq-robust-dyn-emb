@@ -46,6 +46,21 @@ Section Autosubst_Lemmas.
     - asimpl. rewrite IHn. by asimpl.
   Qed.
 
+  Lemma upn_add n m σ : upn (n + m) σ = upn n (upn m σ).
+  Proof.
+    generalize dependent n. induction n; first by asimpl.
+    asimpl.
+    assert (upn (S (n + m)) σ = up (upn (n + m) σ)) as ->.
+    { by asimpl. } rewrite IHn. by asimpl.
+  Qed.
+
+  Lemma Closed_n_weaken (n : nat) (t : term) (ht : Closed_n n t) :
+    ∀ m, n ≤ m → Closed_n m t.
+  Proof.
+    intros m leq σ. assert (m = n + (m - n)) as -> by lia.
+    rewrite upn_add. by rewrite ht.
+ Qed.
+
   Lemma ids_subst_no n m σ : n < m → (ids n).[upn m σ] = ids n.
   Proof.
     generalize dependent n.

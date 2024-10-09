@@ -37,7 +37,7 @@ Ltac rw_fill := (* for e.g. bind lemmas *)
    change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 (fill_item ?Ki4 (fill_item ?Ki5 ?e)))))
      with (fill [Ki1 ; Ki2 ; Ki3 ; Ki4 ; Ki5] e);
    change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 (fill_item ?Ki4 ?e))))
-     with (fill [Ki1 ; Ki2 ; Ki3 ; ?Ki4] e);
+     with (fill [Ki1 ; Ki2 ; Ki3 ; Ki4] e);
    change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 ?e)))
      with (fill [Ki1 ; Ki2 ; Ki3] e);
    change (fill_item ?Ki1 (fill_item ?Ki2 ?e))

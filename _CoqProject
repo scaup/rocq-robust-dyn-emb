@@ -16,9 +16,9 @@
 # search lemmas etc in stuff
 # theories/search/stdlib.v
 # theories/search/stdpp.v
-theories/search/iris.v
+# theories/search/iris.v
 # theories/search/heap_lang.v
-theories/search/autosubst.v
+# theories/search/autosubst.v
 
 # prelude stuff
 theories/prelude/imports.v
@@ -27,6 +27,7 @@ theories/prelude/autosubst.v
 theories/prelude/base_lang.v
 theories/prelude/labels.v
 theories/prelude/lists.v
+theories/prelude/tactics.v
 
 # dynamic language
 theories/dyn_lang/definition.v
@@ -39,6 +40,13 @@ theories/dyn_lang/contexts.v
 # surface lang
 theories/grad_lang/types.v
 theories/grad_lang/definition.v
+
+# cast calculus
+theories/cast_calc/definition.v
+theories/cast_calc/lemmas.v
+theories/cast_calc/typing.v
+theories/cast_calc/simul/invariant.v
+theories/cast_calc/simul/prog_pres.v
 
 # maps
 theories/maps/dyn_embedding/definition.v
@@ -56,6 +64,12 @@ theories/logrel/lib/small_helpers.v
 theories/logrel/lemmas/compat_cast_help.v
 theories/logrel/lemmas/casts_superfluous.v
 theories/logrel/lemmas/fun_dyn_embedding.v
+
+
+
+# lib
+theories/logrel/lib/recursion.v
+
 
 # grad typing cont
 theories/grad_lang/typing.v
@@ -85,4 +99,4 @@ theories/theorems.v
 theories/logrel/examples/help.v
 theories/logrel/examples/main.v
 
-# theories/logrel/examples/main.v
+theories/logrel/examples/tautology.v

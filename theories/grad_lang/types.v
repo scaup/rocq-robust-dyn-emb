@@ -8,6 +8,20 @@ Inductive type :=
 Instance type_const_eq : EqDecision type.
 Proof. solve_decision. Qed.
 
+Definition of_shape (s : shape) : type :=
+  match s with
+  | S_Base b => Base b
+  | S_Bin bin => Bin bin Unknown Unknown
+  end.
+
+Definition closed_ground (τ : type) : option shape :=
+  match τ with
+  | Base B => None
+  | Bin bin Unknown Unknown => None
+  | Unknown => None
+  | Bin bin _ _ => Some (S_Bin bin)
+  end.
+
 Inductive consistency : type → type → Set :=
   | C_Arb_Unknown τ : consistency τ Unknown
   | C_Unknown_Arb τ : consistency Unknown τ
@@ -15,6 +29,10 @@ Inductive consistency : type → type → Set :=
   | C_Bin_Bin bin τ1 τ1' τ2 τ2'
         (H1 : consistency τ1 τ1') (H2 : consistency τ2 τ2') :
           consistency (Bin bin τ1 τ2) (Bin bin τ1' τ2').
+
+Lemma consistency_sym τ τ' (H : consistency τ τ') :
+        consistency τ' τ.
+Proof. induction H; try by constructor. Qed.
 
 Lemma consistency_decision τ τ' : sum (consistency τ τ') (consistency τ τ' → False).
 Proof.

@@ -68,9 +68,7 @@ Section fundamental.
       rfn_steps.
       rewrite valrel_unknown_unfold. dvals v1 v1'; try by rfn_faulty.
       rewrite /valrel_unknown_pre /arrow_rel.
-      rfn_steps. iNext.
-      iApply (@rfn_bindK []). eauto. rw_fill. eauto. by iApply "H1".
-      iIntros (w w') "#Hww'". rfn_steps. rfn_val.
+      rfn_steps. iNext. by iApply "H1".
     - asimpl. rewrite decide_True; auto. rfn_steps.
       rfn_bind.
       iApply (IHe n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
@@ -172,9 +170,7 @@ Section fundamental.
       rfn_steps.
       rewrite valrel_unknown_unfold. dvals v1 v1'; try by rfn_faulty.
       rewrite /valrel_unknown_pre /arrow_rel.
-      rfn_steps. repeat iNext.
-      rw_fill. iApply (rfn_bind' [AppRCtx _  _] _ []). iApply ("H1" with "H2").
-      iIntros (w w') "#Hww'". rfn_steps. rfn_val.
+      rfn_steps. repeat iNext. by iApply "H1".
     - asimpl. rewrite decide_True; auto. rfn_steps.
       rfn_bind.
       iApply (IHe n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").

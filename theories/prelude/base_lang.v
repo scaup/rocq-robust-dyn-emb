@@ -33,3 +33,5 @@ Definition base_lit_base (b : base_lit) : base :=
   | LitInt n => Int
   end.
 
+Instance shape_eq : EqDecision shape.
+Proof. solve_decision. Qed.
