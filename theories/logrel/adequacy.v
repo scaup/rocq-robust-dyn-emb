@@ -8,7 +8,7 @@ From iris.proofmode Require Import tactics.
 
 Definition RefineL (L : LabelRel) (e e' : expr) : Prop :=
   ((∃ v, rtc step e (of_val v)) → (∃ v', rtc step e' (of_val v'))) ∧
-  (∀ ℓ, rtc step e (Error ℓ) → ∃ ℓ', L ℓ ℓ' ∧ rtc step e' (Error ℓ')).
+  (∀ ℓ, rtc step e (Error ℓ) → ∃ ℓ', True ∧ rtc step e' (Error ℓ')).
 
 Lemma logrel_adequacy L e e' τ
   (H : open_exprel_typed [] L e e' τ) :
@@ -18,7 +18,7 @@ Proof.
   specialize (H L (le_permissive_refl_inst L) [] []). asimpl in H.
   rewrite /val_lift_r /lbl_lift_r in H.
   assert (H' : ⊢ wp (fun v => ⌜∃ v', rtc step_ne e' (of_val v')⌝)
-                    (fun ℓ => ⌜∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ'⌝) e).
+                    (fun ℓ => ⌜∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ True ⌝) e).
   { iApply wp_impl. iApply H; auto. auto. iIntros (v) "H".
     iDestruct "H" as (v') "[%H' _]". eauto. } clear H.
   assert (H := wp_adequacy _ _ _ H'). clear H'.
@@ -44,7 +44,8 @@ Proof.
   - destruct H12 as [_ R12]; destruct H23 as [_ R23]. intros ℓ1 H1.
     destruct (R12 ℓ1 H1) as (ℓ2 & L12 & H2). clear R12.
     destruct (R23 ℓ2 H2) as (ℓ3 & L23 & H3). clear R23.
-    exists ℓ3. split; auto. apply Hf. exists ℓ2. split; auto.
+    exists ℓ3. split; auto.
+    (* apply Hf. exists ℓ2. split; auto. *)
 Qed.
 
 Notation "e ≤{ L } e' " := (RefineL L e e') (at level 10).

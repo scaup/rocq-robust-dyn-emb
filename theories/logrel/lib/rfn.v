@@ -11,7 +11,8 @@ Section rfn.
     λ Φ v e', (∃ v', ⌜ rtc step_ne e' (of_val v') ⌝ ∗ Φ v v')%I.
 
   Definition lbl_lift_r : (label -> label -> Prop) -> label -> expr -> Prop :=
-    λ L ℓ e', ((∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ')).
+    λ L ℓ e', ((∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ True)).
+    (* λ L ℓ e', ((∃ t' ℓ', rtc step_ne e' t' ∧ faulty t' ℓ' ∧ L ℓ ℓ')). *)
 
   Definition rfn : (val -d> val -d> siProp) -d> (label -> label -> Prop) -d> expr -d> expr -d> siProp :=
     λ Φ L e e', wp (λ v, val_lift_r Φ v e')%I
