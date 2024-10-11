@@ -391,3 +391,233 @@ Proof.
   - by destruct G; invclear H1.
   - by destruct G; invclear H2.
 Qed.
+
+(* step that is "not propagating" (i.e. not otf K[error] → error) *)
+Definition step_np (e e' : expr) : Prop :=
+    ∃ (K : ectx) e_h e_h', e = fill K e_h ∧ e' = fill K e_h' ∧ head_step e_h e_h'.
+
+Lemma step_np_step (e e' : expr) :
+    step_np e e' → step e e'.
+Proof. intros H. destruct H as (K & e_h & e_h' & -> & -> & Hs). by econstructor. Qed.
+
+Inductive Progress e : Prop :=
+  | IsVal v (H : e = of_val v)
+  | IsKError K ℓ (H : e = fill K (Error ℓ))
+  | TakesStep e' (H : step_np e e').
+
+Ltac rw_of_val :=
+  repeat (
+      repeat change (Lam ?e) with (of_val $ LamV e);
+      repeat change (Lit ?b) with (of_val $ LitV b);
+      repeat change (InjL (of_val ?v)) with (of_val $ InjLV v);
+      repeat change (InjR (of_val ?v)) with (of_val $ InjRV v);
+      repeat change (Pair (of_val ?v) (of_val ?w)) with (of_val $ PairV v w)
+    ).
+
+Ltac rw_fill_item :=
+  simpl;
+  rw_of_val;
+  (repeat (
+      repeat change (App (of_val ?v) ?e) with (fill_item (AppRCtx v) e);
+      repeat change (App ?e1 ?e2) with (fill_item (AppLCtx e2) e1);
+      repeat change (Pair (of_val ?v1) ?e2) with (fill_item (PairRCtx v1) e2);
+      repeat change (Pair ?e1 ?e2) with (fill_item (PairLCtx e2) e1);
+      repeat change (Fst ?e) with (fill_item (FstCtx ) e);
+      repeat change (Snd ?e) with (fill_item (SndCtx ) e);
+      repeat change (InjL ?e) with (fill_item InjLCtx e);
+      repeat change (InjR ?e) with (fill_item InjRCtx e);
+      repeat change (Case ?e1 ?e2 ?e3) with (fill_item (CaseCtx e2 e3) e1);
+      repeat change (If ?e1 ?e2 ?e3) with (fill_item (IfCtx e2 e3) e1);
+      repeat change (BinOp ?op (of_val ?v1) ?e2) with (fill_item (BinOpRCtx op v1) e2);
+      repeat change (BinOp ?op ?e1 ?e2) with (fill_item (BinOpLCtx op e2) e1);
+      repeat change (Seq ?e1 ?e2) with (fill_item (SeqCtx e2) e1);
+      repeat change (Cast ?ℓ ?τ1 ?τ2 ?e) with (fill_item (CastCtx ℓ τ1 τ2) e)
+    )).
+
+
+Ltac rw_fill := (* for e.g. bind lemmas *)
+  rw_fill_item;
+  (change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 (fill_item ?Ki4 (fill_item ?Ki5 (fill_item ?Ki6 ?e))))))
+    with (fill [Ki1 ; Ki2 ; Ki3 ; Ki4; Ki5; Ki6] e);
+   change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 (fill_item ?Ki4 (fill_item ?Ki5 ?e)))))
+     with (fill [Ki1 ; Ki2 ; Ki3 ; Ki4 ; Ki5] e);
+   change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 (fill_item ?Ki4 ?e))))
+     with (fill [Ki1 ; Ki2 ; Ki3 ; Ki4] e);
+   change (fill_item ?Ki1 (fill_item ?Ki2 (fill_item ?Ki3 ?e)))
+     with (fill [Ki1 ; Ki2 ; Ki3] e);
+   change (fill_item ?Ki1 (fill_item ?Ki2 ?e))
+     with (fill [Ki1; Ki2] e);
+   change (fill_item ?Ki ?e)
+     with (fill [Ki] e)
+  ).
+
+
+Lemma step_np_fill e1 e2 K : step_np e1 e2 → step_np (fill K e1) (fill K e2).
+Proof. intros. destruct H as (K' & e_h & e_h' & -> & -> & Hh). repeat rewrite -fill_app. by eexists; eauto. Qed.
+
+Lemma progress e τ Γ (Heτ : Γ ⊢ e : τ) :
+  Γ = [] → Progress e.
+Proof.
+  intros eq. induction Heτ; simplify_eq;
+    repeat (lazymatch goal with | H : [] = [] → _ |- _ => (specialize (H ltac:(auto))) end).
+  - eapply IsVal. by rw_of_val.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + destruct v1; invclear Heτ1. destruct b; invclear H.
+      eapply TakesStep; eexists [], _, _; repeat split; eauto; repeat constructor.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + destruct v1; invclear Heτ1. destruct b; invclear H.
+      eapply TakesStep; eexists [], _, _; repeat split; eauto; repeat constructor.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + destruct v1; invclear Heτ1. destruct b; invclear H.
+      inversion IHHeτ2 as [v2 -> | K ℓ -> | e2' Hs2 ].
+      * destruct v2; invclear Heτ2. destruct b; invclear H.
+        eapply TakesStep. eexists [], _, _; repeat split; eauto; repeat constructor.
+      * eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+      * eapply TakesStep; rw_fill; by eapply step_np_fill.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - eapply IsVal; rw_of_val; eauto.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + inversion IHHeτ2 as [v2 -> | K ℓ -> | e2' Hs2 ].
+      * destruct v1; invclear Heτ1.
+        -- eapply TakesStep. eexists [], _, _; repeat split.
+           apply HN_No_Cast. econstructor. by rewrite to_of_val.
+        -- eapply TakesStep. eexists [], _, _. repeat split.
+           apply HN_Cast. econstructor; by rewrite to_of_val.
+        -- destruct v1; invclear H6. simpl.
+           eapply TakesStep.
+           eexists [], _, _. repeat split; eauto.
+           apply HN_Cast.
+           eapply HN_Cast_GG_App; by rewrite to_of_val.
+      * eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+      * eapply TakesStep; rw_fill; by eapply step_np_fill.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + inversion IHHeτ2 as [v2 -> | K ℓ -> | e2' Hs2 ].
+      * eapply IsVal. by rw_of_val.
+      * eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+      * eapply TakesStep; rw_fill; by eapply step_np_fill.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ as [v -> | K ℓ -> | e' Hs ].
+    + destruct v; invclear Heτ.
+      eapply TakesStep; eexists [], _, _; repeat split; eauto; repeat econstructor; by rewrite to_of_val.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ as [v -> | K ℓ -> | e' Hs ].
+    + destruct v; invclear Heτ.
+      eapply TakesStep; eexists [], _, _; repeat split; eauto; repeat econstructor; by rewrite to_of_val.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ as [v -> | K ℓ -> | e' Hs ].
+    + eapply IsVal. by rw_of_val.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ as [v -> | K ℓ -> | e' Hs ].
+    + eapply IsVal. by rw_of_val.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ1 as [v1 -> | K ℓ -> | e1' Hs1 ].
+    + destruct v1; invclear Heτ1;
+      eapply TakesStep; eexists [], _, _; repeat split; eauto; repeat econstructor; by rewrite to_of_val.
+    + eapply IsKError; rw_fill; rewrite -fill_app; eauto.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - inversion IHHeτ as [v -> | K ℓ' -> | e' Hs ].
+    + invclear H.
+      * destruct τ1; simplify_eq.
+        -- by apply (IsVal _ (CastGroundUpV ℓ (S_Base B) v)).
+        -- destruct (decide (τ1_1 = Unknown ∧ τ1_2 = Unknown)) as [[-> ->] | neq ].
+           ++ by apply (IsVal _ (CastGroundUpV ℓ (S_Bin bin) v)).
+           ++ eapply TakesStep; eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. eapply HN_Cast_Ground; try by rewrite to_of_val.
+              destruct τ1_1; destruct τ1_2; eauto.
+              exfalso. by apply neq.
+              destruct bin; auto.
+              destruct τ1_1; destruct τ1_2; eauto; try by simplify_option_eq.
+              exfalso. by apply neq.
+              destruct τ1_1; destruct τ1_2; eauto; try by simplify_option_eq.
+              exfalso. by apply neq.
+              destruct τ1_1; destruct τ1_2; eauto; try by simplify_option_eq.
+              exfalso. by apply neq.
+        -- eapply TakesStep. eexists [], _, _; repeat split; eauto.
+           apply HN_Cast. econstructor. by rewrite to_of_val.
+      * destruct τ2; simplify_eq.
+        -- destruct v; invclear Heτ. simpl.
+           change (Base B) with (of_shape (S_Base B)).
+           destruct (decide (G = S_Base B)) as [-> | neq].
+           ++ eapply TakesStep. eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. eapply HN_Cast_GG_Succeed. auto. by rewrite to_of_val.
+           ++ eapply TakesStep. eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. eapply HN_Cast_GG_Fail; auto. by rewrite to_of_val.
+        -- destruct (decide (τ2_1 = Unknown ∧ τ2_2 = Unknown)) as [[-> ->] | neq ].
+           ++ change (Bin bin Unknown Unknown) with (of_shape (S_Bin bin)).
+              destruct (decide (bin = Arrow)) as [-> | neq].
+              ** by apply (IsVal _ (CastArrowDownV ℓ v)).
+              ** destruct v; invclear Heτ.
+                 destruct (decide (G = (S_Bin bin))) as [-> | neq'].
+                 --- eapply TakesStep. eexists [], _, _; repeat split; eauto.
+                     apply HN_Cast. eapply HN_Cast_GG_Succeed; auto. intros abs. exfalso. apply neq. by inversion abs.
+                     by rewrite to_of_val.
+                 --- eapply TakesStep. eexists [], _, _; repeat split; eauto.
+                     apply HN_Cast. eapply HN_Cast_GG_Fail; auto. intros abs. exfalso. apply neq. by inversion abs.
+                     by rewrite to_of_val.
+           ++ eapply TakesStep. eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. econstructor.
+              destruct τ2_1; destruct τ2_2; eauto; try by simplify_option_eq.
+              exfalso. by apply neq.
+              destruct τ2_1; destruct τ2_2; eauto; try by simplify_option_eq.
+              exfalso. by apply neq.
+              by rewrite to_of_val.
+        -- eapply TakesStep. eexists [], _, _; repeat split; eauto.
+           apply HN_Cast. econstructor. by rewrite to_of_val.
+      * eapply TakesStep. eexists [], _, _; repeat split; eauto.
+        apply HN_Cast. econstructor. by rewrite to_of_val.
+      * destruct bin.
+        -- destruct v; invclear Heτ.
+           ++ by eapply (IsVal _ (CastArrowV _ _ _ _ _ (LamV e))).
+           ++ by eapply (IsVal _ (CastArrowV _ _ _ _ _ (CastArrowV ℓ0 τ1 τ2 τ0 τ3 v))).
+           ++ by eapply (IsVal _ (CastArrowV _ _ _ _ _ (CastArrowDownV ℓ0 v))).
+        -- destruct v; invclear Heτ.
+           ++ eapply TakesStep. eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. econstructor. by rewrite to_of_val.
+           ++ eapply TakesStep. eexists [], _, _; repeat split; eauto.
+              apply HN_Cast. econstructor. by rewrite to_of_val.
+        -- destruct v; invclear Heτ.
+           eapply TakesStep. eexists [], _, _; repeat split; eauto.
+           apply HN_Cast. econstructor; by rewrite to_of_val.
+    + rw_fill. rewrite -fill_app. by eapply IsKError.
+    + eapply TakesStep; rw_fill; by eapply step_np_fill.
+  - eapply (IsKError _ []); eauto.
+Qed.
+
+Definition diverging (e : expr) : Prop :=
+  ∀ n, ∃ e', nsteps step n e e'.
+
+Definition terminating (e : expr) v : Prop :=
+  rtc step e (of_val v).
+
+Definition erroring (e : expr) ℓ : Prop :=
+  rtc step e (Error ℓ).
+
+Lemma eval_possibilities e τ (Heτ : [] ⊢ e : τ) :
+  ∀ n,
+  (∃ e', nsteps step_np n e e' ∧ [] ⊢ e' : τ) ∨
+  (∃ m K ℓ, m ≤ n ∧ nsteps step_np m e (fill K (Error ℓ))) ∨
+  (∃ m v, m ≤ n ∧ nsteps step_np m e (of_val v)).
+Proof.
+  intros n. induction n; [ left; exists e; split; auto; constructor | ].
+  destruct IHn as [Hdivn | [(m & K & ℓ & Hmn & Hsteps) | (m & v & Hmn & Hsteps)]].
+  - destruct Hdivn as (en & Hstep & Henτ).
+    destruct (progress _ _ _ Henτ ltac:(auto)) as [ v eq | K ℓ eq | e' Hstep' ].
+    + right. right. exists n, v. split; [lia|]. by rewrite -eq.
+    + right. left. exists n, K, ℓ. split; [lia|]. by rewrite -eq.
+    + left. exists e'. split; auto. by eapply nsteps_r. eapply preservation; eauto.
+      destruct Hstep' as (K & eh & eh' & -> & -> & Hh). by apply S_Normal.
+  - right. left. exists m, K, ℓ. by split; [lia|].
+  - right. right. exists m, v. by split; [lia|].
+Qed.

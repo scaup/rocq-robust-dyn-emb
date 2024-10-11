@@ -246,3 +246,12 @@ Inductive step : expr → expr → Prop :=
 
 Definition faulty (e : expr) (ℓ : label) : Prop :=
   ∃ K e', e = fill K e' ∧ (head_faulty e' ℓ ∨ e' = Error ℓ).
+
+Definition diverging (e : expr) : Prop :=
+  ∀ n, ∃ e', nsteps step n e e'.
+
+Definition terminating (e : expr) v : Prop :=
+  rtc step e (of_val v).
+
+Definition erroring (e : expr) ℓ : Prop :=
+  rtc step e (Error ℓ).

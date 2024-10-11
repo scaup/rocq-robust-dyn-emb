@@ -1,52 +1,17 @@
 From main Require Import imports prelude.autosubst prelude.tactics.
-(* From main.cast_calc Require Import types definition. *)
-From main.cast_calc Require Import types typing.
-From main.cast_calc.dynamics Require Import std lemmas.
-From main.dyn_lang Require Import definition casts lib lemmas tactics.
-
-Notation cc_expr := cast_calc.definition.expr.
-Notation dn_expr := dyn_lang.definition.expr.
-
-Notation cc_of_val := std.of_val.
-
-Notation cc_Error := cast_calc.definition.Error.
-Notation cc_fill := std.fill.
-
-Section simul_map.
-
-  Context {ν : label} {Hν : NeverOccurs ν}.
-
-  Reserved Notation "⌜ e ⌝" (at level 5, e at next level).
-
-  Fixpoint simul_expr (e : cc_expr) : expr :=
-    match e with
-    | cast_calc.definition.Lit b => Lit b
-    | cast_calc.definition.Seq e1 e2 => Seq ν ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.If e0 e1 e2 => If ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.BinOp binop e1 e2 => BinOp ν binop ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.Var v => Var v
-    | cast_calc.definition.Lam e => Lam ⌜e⌝
-    | cast_calc.definition.App e1 e2 => App ν ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.InjL e => InjL ⌜e⌝
-    | cast_calc.definition.InjR e => InjR ⌜e⌝
-    | cast_calc.definition.Case e0 e1 e2 => Case ν ⌜e0⌝ ⌜e1⌝ ⌜e2⌝
-    | cast_calc.definition.Fst e => Fst ν ⌜e⌝
-    | cast_calc.definition.Snd e => Snd ν ⌜e⌝
-    | cast_calc.definition.Pair e1 e2 => Pair ⌜e1⌝ ⌜e2⌝
-    | Cast ℓ τ1 τ2 e =>
-        App ν (of_val $ cast' ℓ τ1 τ2) ⌜e⌝
-    | cast_calc.definition.Error ℓ => Error ℓ
-    end where "⌜ e ⌝" := (simul_expr e).
-
-End simul_map.
-
-Notation "⌜ e ⌝" := (simul_expr e) (at level 5, e at next level).
+From main.cast_calc Require Import types.
+(* From main.cast_calc Require Import types typing. *)
+(* From main.cast_calc.dynamics Require Import std lemmas. *)
+Require Import main.cast_calc.cc.
+Require Import main.dyn_lang.dn.
+(* From main.dyn_lang Require Import definition casts lib lemmas tactics. *)
+Require Export main.maps.grad_into_dyn.definition.
 
 Section invariant.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  Inductive Invariant : cc_expr → dn_expr → Prop :=
+  Inductive Invariant : cc.expr → dn.expr → Prop :=
   | I_Lit b : Invariant (cast_calc.definition.Lit b) (Lit b)
   | I_Seq e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
@@ -82,25 +47,25 @@ Section invariant.
   (* ..... *)
   (* for direct translation of cast *)
   | I_Cast ℓ τ1 τ2 e e' (H : Invariant e e') :
-      Invariant (Cast ℓ τ1 τ2 e) (App ν (of_val $ cast' ℓ τ1 τ2) e')
+      Invariant (cc.Cast ℓ τ1 τ2 e) (App ν (of_val $ cast' ℓ τ1 τ2) e')
   (* ..... *)
   (* for relating terminated stuff *)
   (* between arrows *)
   | I_Cast_Arrow_Arrow ℓ ℓ' τ1 τ2 τ3 τ4
-      e v (He : e = cc_of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
-      Invariant (Cast ℓ (Bin Arrow τ1 τ2) (Bin Arrow τ3 τ4) e)
+      (e : cc.expr) v (He : e = cc.of_val v) (HCe : Closed e) (e' : expr) v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
+      Invariant (cc.Cast ℓ (Bin Arrow τ1 τ2) (Bin Arrow τ3 τ4) e)
         (Lam
            (App ν (of_val $ cast' ℓ τ2 τ4)
               (App ℓ' e'
                  (App ν (of_val $ cast' ℓ τ3 τ1) (Var 0)))))
   (* G => ? *)
   | I_Cast_GroundUp ℓ (G : shape)
-      e v (He : e = cc_of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
-      Invariant (Cast ℓ (types.of_shape G) Unknown e) e'
+      e v (He : e = cc.of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
+      Invariant (cc.Cast ℓ (types.of_shape G) Unknown e) e'
   (* ? => ? → ?*)
   | I_Cast_ArrowDown ℓ
-      e v (He : e = cc_of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
-      Invariant (Cast ℓ Unknown (Bin Arrow Unknown Unknown) e)
+      e v (He : e = cc.of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
+      Invariant (cc.Cast ℓ Unknown (Bin Arrow Unknown Unknown) e)
         (Lam (App ℓ e' (Var 0)))
   (* ..... *)
   (* relating errors *)
@@ -109,26 +74,11 @@ Section invariant.
 
 End invariant.
 
-Notation cc_step := cast_calc.dynamics.std.step.
-Notation dn_step := dyn_lang.definition.step.
-
-Notation cc_head_step := cast_calc.dynamics.std.head_step.
-
-Notation dn_of_val := dyn_lang.definition.of_val.
-
-Notation cc_to_val := cast_calc.dynamics.std.to_val.
-Notation dn_to_val := dyn_lang.definition.to_val.
-
-Notation cc_of_to_val := cast_calc.dynamics.std.of_to_val.
-Notation cc_to_of_val := cast_calc.dynamics.std.to_of_val.
-
-Notation cc_fill_app := cast_calc.dynamics.lemmas.fill_app.
-
 Section basic_lemmas.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
-  Lemma simul_expr_Invariant Γ (e : cc_expr) τ (de : Γ ⊢ e : τ) :
-    Invariant e ⌜e⌝.
+  Lemma simul_expr_Invariant Γ (e : cc.expr) τ (de : Γ ⊢ e : τ) :
+    Invariant e ⟨e⟩.
   Proof.
     induction de; simpl; try by constructor.
   Qed.
@@ -210,7 +160,7 @@ Section basic_lemmas.
 
   (* Needed to prove that if initial goes to a value, so must alternative  *)
   Lemma left_val_Invariant e :
-    ∀ e', Invariant e e' → ∀ τ (He : typed [] e τ) v (He : cc_to_val e = Some v), ∃ v', rtc step_ne e' (of_val v') ∧ Invariant e (dn_of_val v').
+    ∀ e', Invariant e e' → ∀ τ (He : typed [] e τ) v (He : cc.to_val e = Some v), ∃ v', rtc step_ne e' (of_val v') ∧ Invariant e (dn.of_val v').
   Proof.
     intros e' I.
     induction I; intros τ Hτ w Hw; try by simplify_option_eq.
@@ -232,7 +182,7 @@ Section basic_lemmas.
         split. bind. take_step. refl.
         change (Base B) with (types.of_shape (S_Base B)).
         eapply (I_Cast_GroundUp _ _ e v); eauto.
-        by erewrite cc_of_to_val. by eapply (typed_Closed []).
+        by erewrite cc.of_to_val. by eapply (typed_Closed []).
         eapply closed_Invariant; eauto. by eapply (typed_Closed []).
       + inversion H4; simplify_eq.
         * rewrite cast_upwards_rw /=.
@@ -241,7 +191,7 @@ Section basic_lemmas.
 
              assert (Bin bin Unknown Unknown = (types.of_shape (S_Bin bin))) as -> by auto.
              econstructor; eauto.
-             by erewrite cc_of_to_val. by eapply (typed_Closed []).
+             by erewrite cc.of_to_val. by eapply (typed_Closed []).
              eapply closed_Invariant; eauto. by eapply (typed_Closed []).
           -- destruct bin; by simplify_option_eq.
         * destruct bin; inversion Hw. simplify_option_eq.
@@ -252,23 +202,23 @@ Section basic_lemmas.
           split. bind. simpl.
           { rewrite cast_arrow_rw; auto.
             take_step. asimpl. repeat rewrite cast'_closed.
-            assert (Closed (dn_of_val v')). eapply closed_Invariant; eauto.
+            assert (Closed (dn.of_val v')). eapply closed_Invariant; eauto.
             by eapply (typed_Closed []). rewrite H. refl. }
           simpl. eapply I_Cast_Arrow_Arrow; eauto.
-          by erewrite cc_of_to_val. by eapply (typed_Closed []).
+          by erewrite cc.of_to_val. by eapply (typed_Closed []).
           eapply closed_Invariant; eauto. by eapply (typed_Closed []).
       + destruct τ; inversion Hw.
         destruct bin; inversion Hw.
         destruct τ1; inversion Hw.
         destruct τ2; inversion Hw. simplify_eq.
-        exists (LamV (App ℓ (dn_of_val v') (Var 0))).
+        exists (LamV (App ℓ (dn.of_val v') (Var 0))).
         split.
         { bind. rewrite /= cast_downwards_rw /= decide_True; auto.
           take_step. asimpl.
-          assert (Closed (dn_of_val v')). eapply closed_Invariant; eauto.
+          assert (Closed (dn.of_val v')). eapply closed_Invariant; eauto.
           by eapply (typed_Closed []). rewrite H. refl. }
           eapply I_Cast_ArrowDown; eauto.
-          by erewrite cc_of_to_val. by eapply (typed_Closed []).
+          by erewrite cc.of_to_val. by eapply (typed_Closed []).
           eapply closed_Invariant; eauto. by eapply (typed_Closed []).
     - eexists. split. change (Lam ?e) with (of_val (LamV e)). refl.
       econstructor; eauto.
@@ -318,8 +268,8 @@ Section basic_lemmas.
   Qed.
 
   (* closedness would probably enough here, but who cares *)
-  Lemma val_shape_Invariant v τ (Hv : typed [] (cc_of_val v) τ) v' :
-      Invariant (cc_of_val v) (of_val v') →
+  Lemma val_shape_Invariant v τ (Hv : typed [] (cc.of_val v) τ) v' :
+      Invariant (cc.of_val v) (of_val v') →
       cast_calc.dynamics.std.shape_val v = shape_val v'.
   Proof.
     intros I. destruct v; inversion I; simplify_eq.

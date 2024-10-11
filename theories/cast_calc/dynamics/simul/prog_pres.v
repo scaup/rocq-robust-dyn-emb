@@ -5,6 +5,9 @@ From main.cast_calc.dynamics Require Import std lemmas.
 From main.cast_calc.dynamics.simul Require Import invariant.
 From main.dyn_lang Require Import definition casts lib lemmas tactics.
 
+Require Import main.cast_calc.cc.
+Require Import main.dyn_lang.dn.
+
 Section progress_and_preservation.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
@@ -14,7 +17,7 @@ Section progress_and_preservation.
      ∃ (K : ectx) e_h e_h' (HS : head_step e_h e_h'),
         e = fill K e_h ∧ e' = fill K e_h'.
 
-  Lemma pp_step_dn_step e e' : pp_step e e' → dn_step e e'.
+  Lemma pp_step_dn_step e e' : pp_step e e' → dn.step e e'.
   Proof. destruct 1 as (K & e_h & e_h' & Hh & -> & ->). by constructor. Qed.
 
   Lemma step_ne_pp_step e e' : step_ne e e' → pp_step e e'.
@@ -25,7 +28,7 @@ Section progress_and_preservation.
   Definition InvariantR e e1 :=
         ∃ e2, tc pp_step e1 e2 ∧
               (match e with
-              | cc_Error ℓ => ∃ K, e2 = fill K (Error ℓ)
+              | cc.Error ℓ => ∃ K, e2 = fill K (Error ℓ)
               | _ => Invariant e e2
               end ).
 
@@ -35,7 +38,7 @@ Section progress_and_preservation.
     intros. exists e''; split; auto. destruct e; auto. invclear H. exists []; auto.
   Qed.
 
-  Instance blaaa e : Decision (∃ ℓ : label, e = cc_Error ℓ).
+  Instance blaaa e : Decision (∃ ℓ : label, e = cc.Error ℓ).
   Proof.
     destruct e; try by right; intros abs; destruct abs as [ℓ' abs]; simplify_eq.
     left. by eexists.
@@ -45,7 +48,7 @@ Section progress_and_preservation.
       InvariantR e e'' → tc pp_step e' e'' → InvariantR e e'.
   Proof.
     intros. destruct H as (e2 & H12 & HH). rewrite /InvariantR.
-    destruct (decide (∃ ℓ, e = cc_Error ℓ)) as [[ℓ ->] | neq].
+    destruct (decide (∃ ℓ, e = cc.Error ℓ)) as [[ℓ ->] | neq].
     - destruct HH as [K ->]. exists (fill K (Error ℓ)).
       split. by eapply tc_transitive. by exists K.
     - simpl. assert (Invariant e e2). destruct e; try done. exfalso. apply neq. by eexists.
@@ -95,8 +98,8 @@ Section progress_and_preservation.
   Qed.
 
   Lemma help_val {τ e v e'}
-    (Hee' : Invariant e e') (Heτ : typed [] e τ) (He : cc_to_val e = Some v) :
-      ∃ v', rtc step_ne e' (of_val v') ∧ Invariant e (dn_of_val v').
+    (Hee' : Invariant e e') (Heτ : typed [] e τ) (He : cc.to_val e = Some v) :
+      ∃ v', rtc step_ne e' (of_val v') ∧ Invariant e (dn.of_val v').
   Proof. eapply left_val_Invariant; eauto. Qed.
 
   Tactic Notation "helpV" constr(H) "as" simple_intropattern(x) :=
@@ -111,7 +114,7 @@ Section progress_and_preservation.
 
   Lemma down_ground_fail ℓ G (HG : G ≠ S_Bin Arrow) v :
     shape_val v ≠ G →
-    InvariantR (cc_Error ℓ) (App ν (of_val $ (cast' ℓ Unknown (types.of_shape G))) (of_val v)).
+    InvariantR (cc.Error ℓ) (App ν (of_val $ (cast' ℓ Unknown (types.of_shape G))) (of_val v)).
   Proof.
     rewrite /InvariantR. intros Hv.
     rewrite cast_downwards_rw /=. destruct G.
@@ -126,8 +129,8 @@ Section progress_and_preservation.
   Qed.
 
   Lemma left_head_step_Invariant e τ (Heτ : typed [] e τ) e' (HIe : Invariant e e') :
-      ∀ e2, cc_head_step e e2 → InvariantR e2 e'.
-      (* ∀ e2, cc_head_step e e2 → InvariantR e2 e'. *)
+      ∀ e2, cc.head_step e e2 → InvariantR e2 e'.
+      (* ∀ e2, cc.head_step e e2 → InvariantR e2 e'. *)
   Proof.
     intros e2 Hstep. inversion Hstep; simplify_eq; clear Hstep.
     - (* non-cast related *) invclear Hs.
@@ -148,14 +151,14 @@ Section progress_and_preservation.
         invclear H3.
         invclear Heτ. invclear H4.
         helpV H1 as (v0' & Hsteps & HIv0').
-        apply (helpR (e1'.[of_val v0'/])). apply subst_Invariant; auto. erewrite cc_of_to_val; eauto.
+        apply (helpR (e1'.[of_val v0'/])). apply subst_Invariant; auto. erewrite cc.of_to_val; eauto.
 
         bind. one_step.
       + invclear HIe.
         invclear H3.
         invclear Heτ. invclear H4.
         helpV H1 as (v0' & Hsteps & HIv0').
-        apply (helpR (e2'.[of_val v0'/])). apply subst_Invariant; auto. erewrite cc_of_to_val; eauto.
+        apply (helpR (e2'.[of_val v0'/])). apply subst_Invariant; auto. erewrite cc.of_to_val; eauto.
         bind. one_step.
       + invclear HIe. invclear H2.
         invclear Heτ. invclear H2.
@@ -190,7 +193,7 @@ Section progress_and_preservation.
         invclear HIe.
         (* only one non-degenerate case *)
         { invclear Heτ.
-          assert (Heq : cc_to_val (Cast ℓ1 (types.of_shape G) Unknown e2) = Some $ CastGroundUpV ℓ1 G v).
+          assert (Heq : cc.to_val (Cast ℓ1 (types.of_shape G) Unknown e2) = Some $ CastGroundUpV ℓ1 G v).
             { destruct G; (try destruct bin); simplify_option_eq; auto. }
           destruct (help_val H6 ltac:(by eauto) Heq) as (v1' & Hsteps & HIv1').
           inversion HIv1'; simplify_eq; [ destruct v1'; inversion H9 | ].
@@ -231,7 +234,7 @@ Section progress_and_preservation.
           destruct (help_val H11 ltac:(by eauto) ltac:(by eauto)) as (v' & Hsteps & HIv').
           eapply helpR'. 2:{ bind. simpl. one_step. } simpl.
           apply down_ground_fail. auto.
-          rewrite -(cc_of_to_val _ _ H1) in HIv' H10.
+          rewrite -(cc.of_to_val _ _ H1) in HIv' H10.
           rewrite -(val_shape_Invariant _ _ H10 _ HIv').
           by rewrite (typed_shape _ _ H10).
         * (* should fail because of shape arugment *)
@@ -272,7 +275,7 @@ Section progress_and_preservation.
                take_step. repeat take_step'. asimpl. bind'. take_step'. asimpl.
 
                assert (shape_val v0' ≠ S_Bin Arrow).
-               { rewrite -(cc_of_to_val _ _ H) in HIv0' H11 H8.
+               { rewrite -(cc.of_to_val _ _ H) in HIv0' H11 H8.
                  rewrite -(val_shape_Invariant _ _ H8 _ HIv0').
                  by rewrite (typed_shape _ _ H8). }
                apply rtc_once; apply (asdf []); rw_fill; eexists; eauto; split; eauto; head_faulty_solver.
@@ -280,7 +283,7 @@ Section progress_and_preservation.
                helpV H9 as (v2' & Hsteps2 & HIv2').
                take_step. bind'. repeat take_step'. asimpl.
                assert (shape_val v' ≠ S_Bin Arrow).
-               { rewrite -(cc_of_to_val _ _ H) in H10 H8.
+               { rewrite -(cc.of_to_val _ _ H) in H10 H8.
                  rewrite -(val_shape_Invariant _ _ H8 _ H10).
                  by rewrite (typed_shape _ _ H8). }
                  apply rtc_once; apply (asdf []); rw_fill; eexists; eauto; split; eauto; head_faulty_solver.
@@ -325,7 +328,7 @@ Section progress_and_preservation.
         helpV H7 as (v' & Hsteps & HIv').
         eapply helpR.
         2:{ rewrite (cast_factor_up_rw ℓ τ0 G); auto.
-            rewrite /casts.comp /=. bind. simpl. take_step. asimpl. refl. }
+            rewrite /casts.compd /=. bind. simpl. take_step. asimpl. refl. }
         repeat constructor; auto.
       + (* ? ⇒ G ⇒ τ0 (≠G) *)
         invclear HIe; [| destruct G0; inversion H4].
@@ -333,19 +336,15 @@ Section progress_and_preservation.
         helpV H7 as (v' & Hsteps & HIv').
         eapply helpR.
         2:{ rewrite (cast_factor_down_rw ℓ τ G); auto.
-            rewrite /casts.comp /=. bind. simpl. take_step. asimpl. refl. }
+            rewrite /casts.compd /=. bind. simpl. take_step. asimpl. refl. }
         repeat constructor; auto.
   Qed.
 
-
-  Notation cc_fill_item := cast_calc.dynamics.std.fill_item.
-  Notation cc_fill := cast_calc.dynamics.std.fill.
-
   Definition Invariant_ectx_item Ki Ki' : Prop :=
-      ∀ e e', Invariant e e' → Invariant (cc_fill_item Ki e) (fill_item Ki' e').
+      ∀ e e', Invariant e e' → Invariant (cc.fill_item Ki e) (fill_item Ki' e').
 
   Definition Invariant_ectx K K' : Prop :=
-      ∀ e e', Invariant e e' → Invariant (cc_fill K e) (fill K' e').
+      ∀ e e', Invariant e e' → Invariant (cc.fill K e) (fill K' e').
 
   Lemma Invariant_ectx_empty_l K : Invariant_ectx [] K → K = [].
   Proof.
@@ -357,16 +356,16 @@ Section progress_and_preservation.
   Lemma Invariant_ectx_non_empty_l K (HK : K ≠ []) K' : Invariant_ectx K K' → K' ≠ [].
   Proof.
     intros. destruct K as [|Ki K]; auto. destruct K' as [|Ki' K']; auto. exfalso.
-    specialize (H (cc_Error (Lbl 0)) (Error (Lbl 0)) ltac:(constructor)).
+    specialize (H (cc.Error (Lbl 0)) (Error (Lbl 0)) ltac:(constructor)).
     simpl in H. destruct Ki; invclear H. destruct v'; inversion He'.
   Qed.
 
   Lemma help_val' {τ v e'}
-    (Hee' : Invariant (cc_of_val v) e') (Heτ : typed [] (cc_of_val v) τ) :
-      ∃ v', rtc step_ne e' (of_val v') ∧ Invariant (cc_of_val v) (dn_of_val v').
-  Proof. eapply left_val_Invariant; eauto. by erewrite cc_to_of_val. Qed.
+    (Hee' : Invariant (cc.of_val v) e') (Heτ : typed [] (cc.of_val v) τ) :
+      ∃ v', rtc step_ne e' (of_val v') ∧ Invariant (cc.of_val v) (dn.of_val v').
+  Proof. eapply left_val_Invariant; eauto. by erewrite cc.to_of_val. Qed.
 
-  Lemma ectx_item_Invariant_decompose Ki e (He : cc_to_val e = None) τ (Hτ : [] ⊢ cc_fill_item Ki e : τ) t (HI : Invariant (cc_fill_item Ki e) t) :
+  Lemma ectx_item_Invariant_decompose Ki e (He : cc.to_val e = None) τ (Hτ : [] ⊢ cc.fill_item Ki e : τ) t (HI : Invariant (cc.fill_item Ki e) t) :
       ∃ Ki' e', rtc pp_step t (fill_item Ki' e') ∧ Invariant_ectx_item Ki Ki' ∧ Invariant e e'.
   Proof.
     destruct Ki; simpl in *; try by invclear HI; rw_fill; eexists _, _; split;
@@ -383,7 +382,7 @@ Section progress_and_preservation.
       destruct (help_val' H4 ltac:(eauto)) as (v1' & Hsteps & HIv1').
       eexists _, _. split. bind'. simpl. rw_fill. refl. split; auto.
       intros t t' HI. constructor; auto.
-    - invclear HI; (try by erewrite cc_to_of_val in He; inversion He).
+    - invclear HI; (try by erewrite cc.to_of_val in He; inversion He).
       rw_fill. eexists _, _. split. refl. split; auto. by constructor.
   Qed.
 
@@ -403,7 +402,7 @@ Section progress_and_preservation.
     repeat rewrite -fill_app. repeat eexists; eauto.
   Qed.
 
-  Lemma ectx_Invariant_decompose K e (He : cc_to_val e = None) τ (Hτ : [] ⊢ cc_fill K e : τ) t (HI : Invariant (cc_fill K e) t) :
+  Lemma ectx_Invariant_decompose K e (He : cc.to_val e = None) τ (Hτ : [] ⊢ cc.fill K e : τ) t (HI : Invariant (cc.fill K e) t) :
       ∃ K' e', rtc pp_step t (fill K' e') ∧ Invariant_ectx K K' ∧ Invariant e e'.
   Proof.
     generalize dependent e.
@@ -413,7 +412,7 @@ Section progress_and_preservation.
     - eexists [], t. simpl. (repeat split); [ refl | intros k k' Hkk'; eauto | auto ].
     - rewrite cast_calc.dynamics.lemmas.fill_app in Hτ HI.
       destruct (ectx_decompose _ _ _ _ Hτ) as (τ' & dKie & dK).
-      assert (cc_to_val (cc_fill_item Ki e) = None) by by destruct e; destruct Ki; simpl; repeat rewrite cc_to_of_val; auto; simplify_option_eq.
+      assert (cc.to_val (cc.fill_item Ki e) = None) by by destruct e; destruct Ki; simpl; repeat rewrite cc.to_of_val; auto; simplify_option_eq.
       specialize (IHK t τ _ H Hτ HI) as (K' & e' & Hsteps & HKK' & HI'). simpl in dKie.
       destruct (ectx_item_Invariant_decompose Ki e He τ' dKie _ HI') as (Ki' & t' & Hsteps' & HKiKi' & HI'').
       exists (K' ++ [Ki']), t'; repeat split; auto.
@@ -422,24 +421,24 @@ Section progress_and_preservation.
       intros k k' Hkk'. rewrite fill_app cast_calc.dynamics.lemmas.fill_app. apply HKK'. by apply HKiKi'.
   Qed.
 
-  Inductive Invariant_EC : cc_expr → dn_expr → Prop :=
+  Inductive Invariant_EC : cc.expr → dn.expr → Prop :=
   | Standard e e' (HI : Invariant e e') : Invariant_EC e e'
   | K_Error K (HK : K ≠ []) K' (HK' : K' ≠ []) ℓ :
-      Invariant_EC (cc_fill K (cc_Error ℓ)) (fill K' (Error ℓ)).
+      Invariant_EC (cc.fill K (cc.Error ℓ)) (fill K' (Error ℓ)).
 
   Lemma left_step_Invariant_EC e τ (Heτ : typed [] e τ) e' (HIe : Invariant_EC e e') :
-      ∀ e2, cc_step e e2 → ∃ e2', tc step e' e2' ∧ (Invariant_EC e2 e2').
+      ∀ e2, cc.step e e2 → ∃ e2', tc step e' e2' ∧ (Invariant_EC e2 e2').
   Proof.
     intros e2 Hee2. invclear HIe.
     - invclear Hee2.
       (* regular head step *)
-      + assert (He_h := (head_step_not_val _ _ HS)).
+      + assert (He_h := (cc.head_step_not_val _ _ HS)).
         destruct (ectx_decompose _ _ _ _ Heτ) as (τ' & Hτ' & HK).
         destruct (ectx_Invariant_decompose _ _ He_h _ Heτ _ HI) as (K' & e'' & Hsteps & IKK & Iee').
         (* assert (HH := left_head_step_Invariant _ _ Hτ' _ Iee' _ HS). *)
         (* rewrite /InvariantR in HH.  *)
         destruct (left_head_step_Invariant _ _ Hτ' _ Iee' _ HS) as (e2 & Hpp & HI').
-        destruct (decide (∃ ℓ, e_h' = cc_Error ℓ)) as [[ℓ ->] | neg].
+        destruct (decide (∃ ℓ, e_h' = cc.Error ℓ)) as [[ℓ ->] | neg].
         * (* e_h → Error *) destruct HI' as [L ->].
           destruct (decide (K = [])) as [-> | neq].
           -- (* happens a top level *)
@@ -468,7 +467,7 @@ Section progress_and_preservation.
           intros. apply pp_step_dn_step. by apply pp_step_fill.
       + (* K[error] → Error *)
         exists (Error ℓ). split; [|repeat constructor].
-        assert (He_h : cc_to_val (cc_Error ℓ) = None). auto.
+        assert (He_h : cc.to_val (cc.Error ℓ) = None). auto.
         destruct (ectx_decompose _ _ _ _ Heτ) as (τ' & Hτ' & HK).
         destruct (ectx_Invariant_decompose _ _ He_h _ Heτ _ HI) as (K' & e'' & Hsteps & IKK & Iee').
         assert (neq' := Invariant_ectx_non_empty_l _ H _ IKK).
@@ -476,8 +475,8 @@ Section progress_and_preservation.
         eapply (tc_rtc_l _ (fill K' (Error ℓ))).
         eapply (rtc_congruence id); try eapply pp_step_dn_step; eauto.
         apply tc_once. by constructor.
-  - assert (e2 = cc_Error ℓ) as ->.
-    eapply (step_det _ _ _ Hee2). by constructor.
+  - assert (e2 = cc.Error ℓ) as ->.
+    eapply (cc.step_det _ _ _ Hee2). by constructor.
     exists (Error ℓ). split; [|repeat constructor]. apply tc_once. constructor. auto.
   Qed.
 

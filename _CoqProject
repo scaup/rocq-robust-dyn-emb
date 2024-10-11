@@ -37,6 +37,8 @@ theories/dyn_lang/tactics.v
 theories/dyn_lang/labels.v
 theories/dyn_lang/contexts.v
 
+theories/dyn_lang/dn.v
+
 # cast calc
 theories/cast_calc/types.v
 theories/cast_calc/definition.v
@@ -74,6 +76,9 @@ theories/cast_calc/typing.v
 theories/cast_calc/contexts.v
 theories/cast_calc/labels.v
 
+
+theories/cast_calc/cc.v
+
 # # casts compat
 theories/logrel/lemmas/compats.v
 theories/logrel/lemmas/fun_grad_into_dyn.v
@@ -93,5 +98,7 @@ theories/maps/linker/definition.v
 theories/logrel/examples/help.v
 theories/logrel/examples/main.v
 theories/logrel/examples/tautology.v
+
+
 
 theories/theorems.v

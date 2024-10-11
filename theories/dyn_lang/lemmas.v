@@ -279,6 +279,23 @@ Proof.
   simplify_eq. destruct (IH K') as [K'' ->]; auto. by exists K''.
 Qed.
 
+Lemma step_by_val' K K' e1 e1' ℓ :
+  fill K e1 = fill K' e1' →
+  to_val e1 = None →
+  e1' = Error ℓ →
+  ∃ K'', K' = K ++ K''.
+Proof.
+  intros Hfill Hred Hstep.
+  revert K' Hfill.
+  induction K as [|Ki K IH]=> /= K' Hfill; eauto using app_nil_l.
+  destruct K' as [|Ki' K']; simplify_eq/=.
+  { destruct Ki; invclear Hfill. }
+  assert (Ki = Ki') as ->.
+  { eapply fill_item_no_val_inj, Hfill.
+    by apply fill_not_val. apply fill_not_val. eauto using val_head_stuck. }
+  simplify_eq. destruct (IH K') as [K'' ->]; auto. by exists K''.
+Qed.
+
 Definition to_error (e : expr) : option label :=
   match e with
   | Error ℓ => Some ℓ
@@ -482,4 +499,155 @@ Proof.
   rewrite fill_app in abs.
   exists K'', ℓ. eapply fill_inj. apply abs.
   by apply not_K_error_step_fill_item.
+Qed.
+
+Lemma head_step_det e e1 e2 : head_step e e1 → head_step e e2 → e1 = e2.
+Proof.
+  intros H1 H2. invclear H1; invclear H2.
+  - f_equiv. apply (faulty_unique_label e); exists []; eexists; eauto.
+  - exfalso. by eapply ne_head_step_not_head_faulty.
+  - exfalso. by eapply ne_head_step_not_head_faulty.
+  - by eapply ne_head_step_det.
+Qed.
+
+Lemma head_step_not_val e1 e2 :
+  head_step e1 e2 → to_val e1 = None.
+Proof.
+  destruct 1; auto.
+  by eapply head_faulty_no_val.
+  by eapply val_pure_head_stuck.
+Qed.
+
+Lemma step_det (e e1 e2 : expr) : step e e1 → step e e2 → e1 = e2.
+Proof.
+  intros H1 H2. invclear H1; invclear H2.
+  - assert (K = K0) as <-.
+    { destruct (step_by_val K0 K e_h0 e_h e_h' H0 ltac:(by eapply head_step_not_val) ltac:(eauto)) as [Kred eq].
+      destruct (step_by_val K K0 _ _ e_h'0 (eq_Symmetric _ _ H0) ltac:(by eapply head_step_not_val) ltac:(eauto)) as [Kred' eq'].
+      assert (H: length K = length ((K ++ Kred') ++ Kred)). by rewrite -eq' eq. rewrite -app_assoc app_length app_length in H.
+      destruct Kred'; [ | exfalso; simpl in *; lia ]. destruct Kred; [ | exfalso; simpl in *; lia ].
+      by rewrite app_nil_r in eq. }
+    f_equal. rewrite (fill_inj K _ _ H0) in HS0. by eapply head_step_det.
+  - exfalso.
+    destruct (pure_step_by_val' K K0 e_h (Error ℓ) ltac:(eauto) (eq_Symmetric _ _ H) ltac:(by eapply head_step_not_val)) as [Kred eq]; auto. simplify_eq.
+    rewrite fill_app in H.
+    assert (fill Kred (Error ℓ) = e_h). eapply fill_inj. apply H. simplify_eq.
+    { destruct Kred as [|Ki KK]. invclear HS. invclear H. invclear H.
+      destruct (head_ctx_step_val Ki _ _ HS) as [v abs]. by rewrite fill_not_val in abs. }
+  - exfalso.
+    destruct (pure_step_by_val' K0 K e_h (Error ℓ) ltac:(eauto) (H1) ltac:(by eapply head_step_not_val)) as [Kred eq]; auto. simplify_eq.
+    rewrite fill_app in H1.
+    assert (e_h = fill Kred (Error ℓ)). eapply fill_inj. apply H1. simplify_eq.
+    { destruct Kred as [|Ki KK]. invclear HS. invclear H0. invclear H0.
+      destruct (head_ctx_step_val Ki _ _ HS) as [v abs]. by rewrite fill_not_val in abs. }
+  - destruct (pure_step_by_val' K K0 (Error ℓ) (Error ℓ0) ℓ0 ltac:(eapply (eq_Symmetric _ _ H0)) ltac:(eauto) ltac:(eauto)) as [Kred eq].
+    destruct (pure_step_by_val' K0 K (Error ℓ0) (Error ℓ) ℓ H0 ltac:(eauto) ltac:(eauto)) as [Kred' eq'].
+
+    simplify_eq.
+    assert (length (Kred') = 0).
+    { assert (length K0 = length ((K0 ++ Kred') ++ Kred)). by rewrite -eq.
+      destruct Kred; destruct Kred';
+      repeat rewrite app_length /= in H2; auto; lia.
+    }
+    destruct Kred'; destruct Kred; simplify_eq. simpl in *.
+    rewrite app_nil_r in H0. by eapply fill_inj.
+    rewrite app_nil_r in H0. by eapply fill_inj.
+Qed.
+
+Lemma nsteps_det e k :
+  ∀ e1 e2, nsteps step k e e1 → nsteps step k e e2 → e1 = e2.
+Proof.
+  induction k; [ by intros; invclear H; invclear H0 |].
+  intros e1 e2 Hsteps1 Hsteps2.
+  destruct (nsteps_inv_r _ _ _ Hsteps1) as (e1' & Hsteps1' & Hstep1).
+  destruct (nsteps_inv_r _ _ _ Hsteps2) as (e2' & Hsteps2' & Hstep2).
+  specialize (IHk _ _ Hsteps1' Hsteps2'). simplify_eq.
+  by rewrite (step_det _ _ _ Hstep1 Hstep2).
+Qed.
+
+Lemma eval_vals e v v' :
+  rtc step e (of_val v) → rtc step e (of_val v') → v = v'.
+Proof.
+  intros.
+  destruct (rtc_nsteps_1 _ _ H) as [n1 Hsteps1]. clear H.
+  destruct (rtc_nsteps_1 _ _ H0) as [n2 Hsteps2]. clear H0.
+  destruct (decide (n1 ≤ n2)) as [Hy | Hn].
+  - assert (∃ k, n2 = n1 + k) as [k eq]. exists (n2 - n1). lia. rewrite eq in Hsteps2.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps2) as (e' & Hstepsn1 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps1 Hstepsn1).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk. assert (abs := step_no_val' _ _ H0). by rewrite to_of_val in abs. }
+    simplify_eq. by invclear Hstepsk.
+  - assert (∃ k, n1 = n2 + k) as [k eq]. exists (n1 - n2). lia. rewrite eq in Hsteps1.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps1) as (e' & Hstepsn2 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps2 Hstepsn2).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk. assert (abs := step_no_val' _ _ H0). by rewrite to_of_val in abs. }
+    simplify_eq. by invclear Hstepsk.
+Qed.
+
+Lemma eval_val_error_False e v ℓ :
+  rtc step e (of_val v) → rtc step e (Error ℓ) → False.
+Proof.
+  intros.
+  destruct (rtc_nsteps_1 _ _ H) as [n1 Hsteps1]. clear H.
+  destruct (rtc_nsteps_1 _ _ H0) as [n2 Hsteps2]. clear H0.
+  destruct (decide (n1 ≤ n2)) as [Hy | Hn].
+  - assert (∃ k, n2 = n1 + k) as [k eq]. exists (n2 - n1). lia. rewrite eq in Hsteps2.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps2) as (e' & Hstepsn1 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps1 Hstepsn1).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk. assert (abs := step_no_val' _ _ H0). by rewrite to_of_val in abs. }
+    simplify_eq. invclear Hstepsk. destruct v; invclear H.
+  - assert (∃ k, n1 = n2 + k) as [k eq]. exists (n1 - n2). lia. rewrite eq in Hsteps1.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps1) as (e' & Hstepsn2 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps2 Hstepsn2).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk. by eapply Error_step_absurd. }
+    simplify_eq. invclear Hstepsk. destruct v; invclear H.
+Qed.
+
+Lemma eval_val_divergence_False e v :
+  diverging e → rtc step e (of_val v) → False.
+Proof.
+  intros Hdiv Hrtc.
+  destruct (rtc_nsteps_1 _ _ Hrtc) as [n Hnsteps]. clear Hrtc.
+  destruct (Hdiv (S n)) as [e' HS].
+  destruct (nsteps_inv_r _ _ _ HS) as [e'' [H HS']].
+  assert (eq := nsteps_det _ _ _ _ Hnsteps H). simplify_eq.
+  assert (abs := step_no_val' _ _ HS'). by rewrite to_of_val in abs.
+Qed.
+
+Lemma eval_error_divergence_False e ℓ :
+  diverging e → rtc step e (Error ℓ) → False.
+Proof.
+  intros Hdiv Hrtc.
+  destruct (rtc_nsteps_1 _ _ Hrtc) as [n Hnsteps]. clear Hrtc.
+  destruct (Hdiv (S n)) as [e' HS].
+  destruct (nsteps_inv_r _ _ _ HS) as [e'' [H HS']].
+  assert (eq := nsteps_det _ _ _ _ Hnsteps H). simplify_eq.
+  by eapply Error_step_absurd.
+Qed.
+
+Lemma eval_errors e ℓ ℓ' :
+  rtc step e (Error ℓ) → rtc step e (Error ℓ') → ℓ = ℓ'.
+Proof.
+  intros.
+  destruct (rtc_nsteps_1 _ _ H) as [n1 Hsteps1]. clear H.
+  destruct (rtc_nsteps_1 _ _ H0) as [n2 Hsteps2]. clear H0.
+  destruct (decide (n1 ≤ n2)) as [Hy | Hn].
+  - assert (∃ k, n2 = n1 + k) as [k eq]. exists (n2 - n1). lia. rewrite eq in Hsteps2.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps2) as (e' & Hstepsn1 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps1 Hstepsn1).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk. assert (abs := step_no_val' _ _ H0).
+      by eapply Error_step_absurd. }
+    simplify_eq. by invclear Hstepsk.
+  - assert (∃ k, n1 = n2 + k) as [k eq]. exists (n1 - n2). lia. rewrite eq in Hsteps1.
+    destruct (nsteps_add_inv _ _ _ _ Hsteps1) as (e' & Hstepsn2 & Hstepsk).
+    assert (Heq := nsteps_det _ _ _ _ Hsteps2 Hstepsn2).
+    assert (k = 0).
+    { destruct k; eauto. exfalso. invclear Hstepsk.
+      by eapply Error_step_absurd. }
+    simplify_eq. by invclear Hstepsk.
 Qed.

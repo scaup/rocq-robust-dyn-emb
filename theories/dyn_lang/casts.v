@@ -16,7 +16,7 @@ Section casts.
     | Opposite => Normal
     end.
 
-  Definition comp (dir : direction) (f1 f2 : val) :=
+  Definition compd (dir : direction) (f1 f2 : val) :=
     match dir with
     | Normal => LamV (AppAn (of_val f2).[ren (+1)] (AppAn (of_val f1).[ren (+1)] (Var 0)))
     | Opposite => LamV (AppAn (of_val f1).[ren (+1)] (AppAn (of_val f2).[ren (+1)] (Var 0)))
@@ -34,7 +34,7 @@ Section casts.
                    | Normal => (* ? ∘ ? => ? *) Id
                    | Opposite => (* ? => ? ∘ ? *) of_shape' ℓ (S_Bin bin)
                    end
-        | right x => comp dir
+        | right x => compd dir
                      (match bin with
                       | Arrow => surround ν
                       | Sum => bimap_sum ν
@@ -244,7 +244,7 @@ Section casts_alt.
 
   Lemma cast_factor_up_rw ℓ τ G :
     to_ground τ = None → closed_ground τ = Some G →
-    cast' ℓ τ Unknown = comp Normal (cast' ℓ τ (types.of_shape G)) (cast' ℓ (types.of_shape G) Unknown).
+    cast' ℓ τ Unknown = compd Normal (cast' ℓ τ (types.of_shape G)) (cast' ℓ (types.of_shape G) Unknown).
   Proof.
     intros.
     rewrite /(cast' ℓ τ Unknown).
@@ -264,7 +264,7 @@ Section casts_alt.
 
   Lemma cast_factor_down_rw ℓ τ G :
     to_ground τ = None → closed_ground τ = Some G →
-    cast' ℓ Unknown τ = comp Normal (cast' ℓ Unknown (types.of_shape G)) (cast' ℓ (types.of_shape G) τ).
+    cast' ℓ Unknown τ = compd Normal (cast' ℓ Unknown (types.of_shape G)) (cast' ℓ (types.of_shape G) τ).
   Proof.
     intros.
     rewrite /(cast' ℓ Unknown τ).
