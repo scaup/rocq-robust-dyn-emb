@@ -127,8 +127,14 @@ Section tautology_example.
 
   Fixpoint taut_coq (n : nat) : (type_taut_coq n) :=
     match n with
-    | O => fun g => g
+    | O => id
     | S n => fun g => (taut_coq n (g false)) && (taut_coq n (g true))
+    end.
+
+  Fail Fixpoint taut_coq_naive (n : nat) (h : dom_taut_coq n) : bool :=
+    match n with
+    | O => h
+    | S n => (taut_coq n (h false)) && (taut_coq n (h true))
     end.
 
 End tautology_example.

@@ -247,12 +247,20 @@ Section equiv.
     (∀ v', terminating ⟨e⟩ v' -> ∃ v, cc.terminating e v ∧ Invariant (cc.of_val v) (of_val v')).
   Proof. split; [ by eapply ref_terminating | by eapply rev_terminating ]. Qed.
 
-  Lemma equi_divergencing e τ (He : typed [] e τ) :
+  Lemma equi_diverging e τ (He : typed [] e τ) :
     (cc.diverging e <-> diverging ⟨e⟩).
   Proof. split; intros H n; [ by eapply ref_diverging | by eapply rev_diverging ]. Qed.
 
-  Lemma equi_errororing e τ (He : typed [] e τ) :
+  Lemma equi_error e τ (He : typed [] e τ) :
     (∀ ℓ, cc.erroring e ℓ -> erroring ⟨e⟩ ℓ) ∧ (∀ ℓ, erroring ⟨e⟩ ℓ -> cc.erroring e ℓ).
   Proof. split; [ by eapply ref_erroring | by eapply rev_erroring ]. Qed.
+
+  Lemma equi_eval e τ (He : typed [] e τ) :
+    ((∀ v, cc.terminating e v -> ∃ v', terminating ⟨e⟩ v' ∧ Invariant (cc.of_val v) (of_val v')) ∧
+     (∀ v', terminating ⟨e⟩ v' -> ∃ v, cc.terminating e v ∧ Invariant (cc.of_val v) (of_val v'))) ∧
+    (cc.diverging e <-> diverging ⟨e⟩) ∧
+    ((∀ ℓ, cc.erroring e ℓ -> erroring ⟨e⟩ ℓ) ∧ (∀ ℓ, erroring ⟨e⟩ ℓ -> cc.erroring e ℓ)).
+  Proof. split; [|split]; [ by eapply equi_terminating | by eapply equi_diverging | by eapply equi_error ]. Qed.
+
 
 End equiv.

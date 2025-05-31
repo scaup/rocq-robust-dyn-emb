@@ -31,6 +31,9 @@ Ltac labelrel_solver := rw_labelrel; set_solver.
 
 Section refined_dyn_emb_criterion.
 
+  (* Exactly as in paper *)
+  (* ------------------- *)
+
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Notation cc_Error := cast_calc.definition.Error.
@@ -52,11 +55,61 @@ Section refined_dyn_emb_criterion.
     robust_up_to_alt L Γ e τ → robust_up_to L Γ e τ.
   Proof.
     intros H. destruct H as [Heτ H]. split; auto. intros C τ' HC ℓ Hsteps. apply (H C τ' HC ℓ).
-    eapply ref_error; eauto. by eapply typed_ctx_typed.
+    eapply ref_erroring; eauto. by eapply typed_ctx_typed.
   Qed.
 
   Definition import ℓ Γ τ (e : dexpr) : gexpr :=
      gfill_ctx (linker ℓ Γ τ) ⌈⌈ e ⌉⌉.
+
+ (* Theorem cl_dyn_emb_linker ℓ Γ P (e : dexpr) (H : Closed_n (length Γ) e) τ *)
+ (*    (Hee' : open_exprel_typed Γ (diagonal P) e e τ) : *)
+ (*    open_exprel_typed_cl Γ P ⟨(import ℓ Γ τ e)⟩ e τ. *)
+
+  Lemma lose_import_fase_one ℓ Γ e (H : Closed_n (length Γ) e) τ :
+    open_exprel_typed_cl Γ ((eq ℓ) ⊔ (labels_expr e))  ⟨(import ℓ Γ τ e)⟩ (dfill_ctx (trns_ctx (linker ℓ Γ τ)) e) τ.
+  Proof.
+    intros C P τ' HC.
+    eapply (@logrel_adequacy ).
+    apply HC. { le_perm_solver. }
+    rewrite /import. rewrite trns_fill_ctx.
+    apply linker_compat. labelrel_solver.
+    apply dyn_emb_trns_pres_closed_n; auto. apply H.
+    eapply open_exprel_typed_weaken. apply fundamental_l; auto. le_perm_solver.
+  Qed.
+
+  (* P can just trivially false here *)
+  Theorem cl_related_lose_import_paper ℓ Γ P (e : dexpr) (H : Closed_n (length Γ) e) τ
+    (Hee' : open_exprel_typed Γ (diagonal P) e e τ) :
+    open_exprel_typed_cl Γ P ⟨(import ℓ Γ τ e)⟩ e τ.
+  Proof.
+    eapply open_exprel_typed_cl_weaken.
+    eapply (open_exprel_typed_cl_trans _
+              (eq ℓ ⊔ (labels_expr e))
+              P
+           ). 3:{ le_perm_solver. }
+    - apply lose_import_fase_one. auto.
+    - apply open_exprel_typed_cl_n.
+      apply linker_superfluous_l; auto.
+  Qed.
+
+
+  Theorem refined_dyn_emb_criterion_paper Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
+    (He : sem_typed Γ e τ) κ : robust Γ (import κ Γ τ e) τ.
+  Proof.
+    rewrite /robust.
+    apply robust_up_to_alt_valid.
+    rewrite /robust_up_to. destruct He as [He Hc]. split.
+    { rewrite /import. eapply typed_ctx_typed; [| apply linker_typed]. by apply typed_app_r, dyn_emb_typed. }
+    intros C τ' HC ℓ Hsteps. right.
+    assert (HRef := cl_related_lose_import_paper κ Γ (fun _ => False) _ H τ He (trns_ctx C) (labels_ctx C) τ' ltac:(eapply fundamental_ctx; eauto)).
+
+    rewrite trns_fill_ctx in Hsteps.
+    destruct HRef as [_ Hl]. specialize (Hl ℓ Hsteps). destruct Hl as (ℓ' & Hℓ' & _).
+    revert Hℓ'. labelrel_solver.
+  Qed.
+
+  (* Old *)
+  (* ------------------- *)
 
   Lemma rel_ctx_fill_expr {L} (Le Lc : LabelRel) {Γ τ Γ' τ' e e' C C'}
       (HCC' : ctx_rel_typed Lc C C' Γ τ Γ' τ')
@@ -141,7 +194,7 @@ Section rrhp_sem_typed.
         eapply open_exprel_typed_weaken. apply fundamental_r; auto. le_perm_solver.
   Qed.
 
-  Theorem rrhp_import_sem_typed Γ L (e : dexpr) τ (He : sem_typed_liable_to L Γ e τ) :
+  Theorem rrhc_import_sem_typed Γ L (e : dexpr) τ (He : sem_typed_liable_to L Γ e τ) :
    ∀ ℓ (C : gctx) τ' (HC : typed_ctx C Γ τ [] τ'),
        ⟨gfill_ctx C (import ℓ Γ τ e)⟩
            ≡{ L ⊔ labels_ctx C }
@@ -187,7 +240,7 @@ Section rrhp_untyped.
     eapply open_exprel_typed_weaken. apply fundamental_l; auto. le_perm_solver.
   Qed.
 
-  Theorem rrhp_dyn_emb_untyped n (e : dexpr) (H : Closed_n n e) :
+  Theorem rrhc_dyn_emb_untyped n (e : dexpr) (H : Closed_n n e) :
     ∀ (C : gctx) τ (HC : typed_ctx C (replicate n Unknown) Unknown [] τ),
        (fill_ctx (trns_ctx C) e)
            ≡{ (labels_expr e : label → Prop) ⊔ (labels_ctx C) }

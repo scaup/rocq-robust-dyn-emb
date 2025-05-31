@@ -33,6 +33,18 @@ Proof.
     exists ℓ'. split; auto. apply rtc_step_step_ne_to_error. eauto.
 Qed.
 
+From main.dyn_lang Require Import contexts.
+
+Lemma logrel_adequacy_alt L Γ e e' τ (H : open_exprel_typed Γ L e e' τ) :
+  ∀ C C' M τ' (HCC' : ctx_rel_typed M C C' Γ τ [] τ'),
+    RefineL (L ⊔ M) (fill_ctx C e) (fill_ctx C' e').
+Proof.
+  intros. eapply logrel_adequacy. apply HCC'.
+  apply le_permissive_join_r.
+  eapply open_exprel_typed_weaken; eauto.
+  apply le_permissive_join_l.
+Qed.
+
 Lemma refineL_trans (L L' : LabelRel) {Lf} {e1} e2 {e3}
   (Hf : L ⋅ L' ⊑ Lf)
   (H12 : RefineL L e1 e2) (H23 : RefineL L' e2 e3) :
@@ -59,3 +71,34 @@ Lemma RefineL_weaken {L L' e e'} :
   (L ⊑ L') →
   RefineL L' e e'.
 Proof. intros; destruct H. split; naive_solver. Qed.
+
+From main.cast_calc Require Import types.
+
+Definition open_exprel_typed_cl (Γ : list type) (P : label -> Prop) (e e' : expr) (τ : type) : Prop :=
+  ∀ C M τ' (HCC' : ctx_rel_typed (diagonal M) C C Γ τ [] τ'),
+      (fill_ctx C e) ≤{ (diagonal P) ⊔ (diagonal M) } (fill_ctx C e').
+
+Lemma open_exprel_typed_cl_weaken (Γ : list type) (P P' : label -> Prop) (e e' : expr) (τ : type) :
+    open_exprel_typed_cl Γ P e e' τ →
+    (∀ ℓ, P ℓ → P' ℓ) →
+    open_exprel_typed_cl Γ P' e e' τ.
+Proof.
+  intros H HPP' C M τ' HC. eapply RefineL_weaken. eapply H. apply HC.
+  intros ℓ ℓ' Hℓℓ'. destruct Hℓℓ'. left. destruct H0. simplify_eq. split. auto. destruct H1. by split; apply HPP'.
+  by right.
+Qed.
+
+Lemma open_exprel_typed_cl_n (Γ : list type) (P : label → Prop) (e e' : expr) (τ : type) :
+    open_exprel_typed Γ (diagonal P) e e' τ → open_exprel_typed_cl Γ P e e' τ.
+Proof. intros H C M τ' HC. by eapply logrel_adequacy_alt. Qed.
+
+Lemma open_exprel_typed_cl_trans Γ P12 P23 e1 e2 e3 τ
+  (H12 : open_exprel_typed_cl Γ P12 e1 e2 τ)
+  (H23 : open_exprel_typed_cl Γ P23 e2 e3 τ) :
+  open_exprel_typed_cl Γ ((fun l => P12 l ∧ P23 l)) e1 e3 τ.
+Proof.
+  intros C M τ' HC.
+  eapply refineL_trans; [| by eapply H12 | by eapply H23].
+  rewrite /combine_LabelRel /=. rewrite /join /join_LabelRel_inst /join_LabelRel /diagonal.
+  intros l l' H. naive_solver.
+Qed.
