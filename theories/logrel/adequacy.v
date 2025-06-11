@@ -74,28 +74,31 @@ Proof. intros; destruct H. split; naive_solver. Qed.
 
 From main.cast_calc Require Import types.
 
-Definition open_exprel_typed_cl (Γ : list type) (P : label -> Prop) (e e' : expr) (τ : type) : Prop :=
+(* "logical label-aware ctx refinement" *)
+Definition lla_ctx_refinement (Γ : list type) (P : label -> Prop) (e e' : expr) (τ : type) : Prop :=
   ∀ C M τ' (HCC' : ctx_rel_typed (diagonal M) C C Γ τ [] τ'),
       (fill_ctx C e) ≤{ (diagonal P) ⊔ (diagonal M) } (fill_ctx C e').
 
-Lemma open_exprel_typed_cl_weaken (Γ : list type) (P P' : label -> Prop) (e e' : expr) (τ : type) :
-    open_exprel_typed_cl Γ P e e' τ →
+(* Notation open_exprel_typed_cl := lla_ctx_refinement. *)
+
+Lemma lla_ctx_refinement_weaken (Γ : list type) (P P' : label -> Prop) (e e' : expr) (τ : type) :
+    lla_ctx_refinement Γ P e e' τ →
     (∀ ℓ, P ℓ → P' ℓ) →
-    open_exprel_typed_cl Γ P' e e' τ.
+    lla_ctx_refinement Γ P' e e' τ.
 Proof.
   intros H HPP' C M τ' HC. eapply RefineL_weaken. eapply H. apply HC.
   intros ℓ ℓ' Hℓℓ'. destruct Hℓℓ'. left. destruct H0. simplify_eq. split. auto. destruct H1. by split; apply HPP'.
   by right.
 Qed.
 
-Lemma open_exprel_typed_cl_n (Γ : list type) (P : label → Prop) (e e' : expr) (τ : type) :
-    open_exprel_typed Γ (diagonal P) e e' τ → open_exprel_typed_cl Γ P e e' τ.
+Lemma lr_lla_ctx_refinement (Γ : list type) (P : label → Prop) (e e' : expr) (τ : type) :
+    open_exprel_typed Γ (diagonal P) e e' τ → lla_ctx_refinement Γ P e e' τ.
 Proof. intros H C M τ' HC. by eapply logrel_adequacy_alt. Qed.
 
-Lemma open_exprel_typed_cl_trans Γ P12 P23 e1 e2 e3 τ
-  (H12 : open_exprel_typed_cl Γ P12 e1 e2 τ)
-  (H23 : open_exprel_typed_cl Γ P23 e2 e3 τ) :
-  open_exprel_typed_cl Γ ((fun l => P12 l ∧ P23 l)) e1 e3 τ.
+Lemma lla_ctx_refinement_trans Γ P12 P23 e1 e2 e3 τ
+  (H12 : lla_ctx_refinement Γ P12 e1 e2 τ)
+  (H23 : lla_ctx_refinement Γ P23 e2 e3 τ) :
+  lla_ctx_refinement Γ ((fun l => P12 l ∧ P23 l)) e1 e3 τ.
 Proof.
   intros C M τ' HC.
   eapply refineL_trans; [| by eapply H12 | by eapply H23].

@@ -29,7 +29,7 @@ Ltac rw_labelrel :=
 Ltac le_perm_solver := rw_labelrel; intros ?; set_solver.
 Ltac labelrel_solver := rw_labelrel; set_solver.
 
-Section refined_dyn_emb_criterion.
+Section robust_dyn_emb_criterion.
 
   (* Exactly as in paper *)
   (* ------------------- *)
@@ -65,8 +65,9 @@ Section refined_dyn_emb_criterion.
  (*    (Hee' : open_exprel_typed Γ (diagonal P) e e τ) : *)
  (*    open_exprel_typed_cl Γ P ⟨(import ℓ Γ τ e)⟩ e τ. *)
 
-  Lemma lose_import_fase_one ℓ Γ e (H : Closed_n (length Γ) e) τ :
-    open_exprel_typed_cl Γ ((eq ℓ) ⊔ (labels_expr e))  ⟨(import ℓ Γ τ e)⟩ (dfill_ctx (trns_ctx (linker ℓ Γ τ)) e) τ.
+  (* lla contextual refinement casted dynamic embedding of arbitrary e *)
+  Lemma lla_ctx_rfn_cast_embd_arb_e ℓ Γ e (H : Closed_n (length Γ) e) τ :
+    lla_ctx_refinement Γ ((eq ℓ) ⊔ (labels_expr e))  ⟨(import ℓ Γ τ e)⟩ (dfill_ctx (trns_ctx (linker ℓ Γ τ)) e) τ.
   Proof.
     intros C P τ' HC.
     eapply (@logrel_adequacy ).
@@ -78,22 +79,22 @@ Section refined_dyn_emb_criterion.
   Qed.
 
   (* P can just trivially false here *)
-  Theorem cl_related_lose_import_paper ℓ Γ P (e : dexpr) (H : Closed_n (length Γ) e) τ
+  Theorem lla_ctx_rfn_cast_embd_sem_e ℓ Γ P (e : dexpr) (H : Closed_n (length Γ) e) τ
     (Hee' : open_exprel_typed Γ (diagonal P) e e τ) :
-    open_exprel_typed_cl Γ P ⟨(import ℓ Γ τ e)⟩ e τ.
+    lla_ctx_refinement  Γ P ⟨(import ℓ Γ τ e)⟩ e τ.
   Proof.
-    eapply open_exprel_typed_cl_weaken.
-    eapply (open_exprel_typed_cl_trans _
+    eapply lla_ctx_refinement_weaken.
+    eapply (lla_ctx_refinement_trans _
               (eq ℓ ⊔ (labels_expr e))
               P
            ). 3:{ le_perm_solver. }
-    - apply lose_import_fase_one. auto.
-    - apply open_exprel_typed_cl_n.
+    - apply lla_ctx_rfn_cast_embd_arb_e. auto.
+    - apply lr_lla_ctx_refinement.
       apply linker_superfluous_l; auto.
   Qed.
 
 
-  Theorem refined_dyn_emb_criterion_paper Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
+  Theorem robust_dyn_emb_criterion Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
     (He : sem_typed Γ e τ) κ : robust Γ (import κ Γ τ e) τ.
   Proof.
     rewrite /robust.
@@ -101,14 +102,18 @@ Section refined_dyn_emb_criterion.
     rewrite /robust_up_to. destruct He as [He Hc]. split.
     { rewrite /import. eapply typed_ctx_typed; [| apply linker_typed]. by apply typed_app_r, dyn_emb_typed. }
     intros C τ' HC ℓ Hsteps. right.
-    assert (HRef := cl_related_lose_import_paper κ Γ (fun _ => False) _ H τ He (trns_ctx C) (labels_ctx C) τ' ltac:(eapply fundamental_ctx; eauto)).
-
+    assert (HRef := lla_ctx_rfn_cast_embd_sem_e κ Γ (fun _ => False) _ H τ He (trns_ctx C) (labels_ctx C) τ' ltac:(eapply fundamental_ctx; eauto)).
     rewrite trns_fill_ctx in Hsteps.
     destruct HRef as [_ Hl]. specialize (Hl ℓ Hsteps). destruct Hl as (ℓ' & Hℓ' & _).
     revert Hℓ'. labelrel_solver.
   Qed.
 
-  (* Old *)
+  Print Assumptions robust_dyn_emb_criterion.
+
+  (* Note; NeverOccurs ν is just trivial predicate; so ν can be anything *)
+
+
+  (* Other stuff *)
   (* ------------------- *)
 
   Lemma rel_ctx_fill_expr {L} (Le Lc : LabelRel) {Γ τ Γ' τ' e e' C C'}
@@ -147,7 +152,7 @@ Section refined_dyn_emb_criterion.
       apply linker_superfluous_l; auto.
   Qed.
 
-  Theorem refined_dyn_emb_criterion_generalized Γ L (e : dexpr) τ
+  Theorem robust_dyn_emb_criterion_generalized Γ L (e : dexpr) τ
     (He : sem_typed_liable_to L Γ e τ) κ : robust_up_to L Γ (import κ Γ τ e) τ.
   Proof.
     apply robust_up_to_alt_valid.
@@ -158,11 +163,11 @@ Section refined_dyn_emb_criterion.
     revert Hℓ'. labelrel_solver.
   Qed.
 
-  Theorem refined_dyn_emb_criterion Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
+  Theorem robust_dyn_emb_criterion_old Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
     (He : sem_typed Γ e τ) κ : robust Γ (import κ Γ τ e) τ.
-  Proof. by apply refined_dyn_emb_criterion_generalized. Qed.
+  Proof. by apply robust_dyn_emb_criterion_generalized. Qed.
 
-End refined_dyn_emb_criterion.
+End robust_dyn_emb_criterion.
 
 (* below just stated in terms of dynamic language... *)
 Section rrhp_sem_typed.
