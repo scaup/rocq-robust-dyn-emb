@@ -8,20 +8,35 @@ Hyperlinks in paper link the stated properties/definitions to their correspondin
 
 Checkout file `theories/theorems.v` for the main theorem of this paper: `robust_dyn_emb_criterion`.
 
-# Folder Structure theories (bottom-up verification)
+# Folder Structure `theories` and most important files (bottom-up verification)
 
-- `dyn_lang` (S4.1) definition of dynamic (fig. 2) language + casts as functions (fig. 4)
-- `cast_calc` (S4.2) definition of cast calculus with typing rules as in gradual langauge (fig 3)
-  + `dynamics`: standard dynamics (fig 3) + simulation argument with emulation map from cast_calc into dyn_lang (S4.2.3, fig. 4, Prop. 1)
-- maps
-  + `dyb_emb dynamic`: embedding dyn_lang into cast_calc (S4.3)
-  + `grad_into_dyn`: map from cast_calc into dyn_lang (alternative semantics for cast_calc by translating casts into dynamic functions) (fig. 4)
-  + `linker`: defines generalized cast operators (Notation 1, Notation 2).
-- `logrel` (S5.1, fig. 5) defintion of typed-indexed logical relation
-  + `lib` (S5.1, fig. 5) definitions of weakestpre and rfn-operator (fig. 5)
-  + `lemmas`: most lemmas from paper, fundamental props...
-  + `examples`: Examples from paper (example 2, example 3)
-- `prelude`: Bureaucracy
+- `dyn_lang`
+  + `definition.v` definition of dynamic language (fig. 2)
+  + `casts.v` casts as functions (fig. 4)
+- `cast_calc`definition of cast calculus with typing rules as in gradual language (S4.2)
+  + `definition.v` grammar cast calculus (fig. 3)
+  + `dynamics`
+    * `std.v` standard dynamics (evaluation steps fig. 3)
+    * `simul/equiv.v` equivalence to to alternative dynamics (S4.2.3, Prop. 1)
+- `maps`
+  + `dyn_embedding`
+    * `definition.v` embedding dyn_lang into cast_calc (S4.3)
+    * `typing.v` well-typedness of this embedding
+  + `grad_into_dyn`
+    * `definition.v` map defining alternative semantics for cast_calc by translating casts into dynamic functions (fig. 4, S4.2.3)
+  + `linker/definitions.v` defines generalized cast operators (Notation 1, Notation 2)
+- `logrel`
+  + `definition.v` definition of typed-indexed logical relation/semantic typing (S5.1, fig. 5, S6.2) 
+  + `lib`
+    * `weakestpre.v` definition weakest precondition (S5.1, fig. 5)
+    * `rfn.v` definition refinement operator (S5.1, fig. 5)
+  + `lemmas` most hyperlinked lemmas/properties from paper
+  + `examples`
+    * `main.v` example from paper (Ex. 2)
+    * `tautology.v` example from paper (Ex. 2)
+    * `discussion.v` example from paper (Ex. 3)
+- `prelude` bureaucracy
+- `theorems.v` final theorem of paper
 
 # Axioms?
 

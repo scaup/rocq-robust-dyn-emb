@@ -65,7 +65,6 @@ Ltac rw_fill_popped := (* for e.g. faulty and step solving *)
 Ltac head_step_sides :=
   by (lazymatch goal with
       | |- to_val (_) = Some _ => rw_of_val; eauto; by rewrite to_of_val
-      (* | |- to_val (of_val _) = Some _ => simplify_option_eq; by rewrite to_of_val *)
       | _ => fail "head_step_sides"
       end).
 
@@ -78,10 +77,8 @@ Ltac head_step_solver :=
 Ltac head_faulty_sides :=
  by (lazymatch goal with
       | |- to_val (_) = Some _ => rw_of_val; eauto; by rewrite to_of_val
-      (* | |- to_val (of_val _) = Some _ => by rewrite to_of_val *)
       | |- shape_val (LitV ?z) ≠ S_Bin _ => by destruct z
       | |- _ => eauto; naive_solver
-      (* | _ => fail "head_faulty_sides" *)
       end).
 
 Ltac head_faulty_solver :=
@@ -97,9 +94,6 @@ Lemma stepK (K : ectx) {e t t' e'} :
   e' = fill K t' →
   step_ne e e'.
 Proof. intros. simplify_eq. by constructor. Qed.
-
-(* Ltac rw_pop_head := *)
-(*     (change (fill [?Ki] ?e) with (fill [] (fill_item Ki e))). *)
 
 Ltac step_solver :=
   by (lazymatch goal with
@@ -117,6 +111,5 @@ Ltac faulty_solver :=
   by (lazymatch goal with
       | |- faulty _ _ => rw_fill; rw_fill_popped; eapply (faultyK _ ltac:(eauto)); eauto;
                                  head_faulty_solver
-      (* | |- faulty _ _ => auto *)
       | _ => fail "faulty_step_solver"
       end).

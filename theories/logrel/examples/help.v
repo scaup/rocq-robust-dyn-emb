@@ -6,8 +6,6 @@ From main.logrel Require Import definition.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
-
 
 Lemma subst_val_val e v (H : is_Some (to_val e.[of_val v/])) :
   ∀ w, is_Some (to_val e.[of_val w/]).

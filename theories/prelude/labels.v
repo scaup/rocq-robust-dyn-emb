@@ -71,7 +71,7 @@ Proof. intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst. by left. Qed.
 Lemma le_permissive_join_r (L1 L2 : LabelRel) : L2 ⊑ (L1 ⊔ L2).
 Proof. intros ℓ ℓ' H. rewrite /join /join_LabelRel_inst. by right. Qed.
 
-(* trvivial lemmas *)
+(* trivial lemmas *)
 (* --------------------------- *)
 
 Lemma diagonal_auto H ℓ : H ℓ → diagonal H ℓ ℓ.
@@ -96,11 +96,10 @@ Ltac permissive_solver :=
   lazymatch goal with
   | HΔ : _ ⊑ ?Δ |- _ ⊑ ?Δ =>
       (apply (le_permissive_trans' _ _ _ HΔ), le_permissive_diagonal; intros k Hk; set_solver)
-      (* (apply (le_permissive_trans' _ _ _ HΔ), le_perm_unary_conj; intros k Hk; rewrite /occursIn; set_solver) *)
   | _ => fail "ads"
   end.
 
-(* (* coercions *) *)
+(* coercions *)
 (* --------------------------- *)
 
 Definition elemhood {A : Type} (ℓs : listset A) : A → Prop :=
@@ -108,7 +107,7 @@ Definition elemhood {A : Type} (ℓs : listset A) : A → Prop :=
 
 Coercion elemhood : listset >-> Funclass.
 
-(* (* asdf *) *)
+(* instantiations *)
 (* --------------------------- *)
 
 Instance join_LabelPred_inst : Join (label → Prop) :=

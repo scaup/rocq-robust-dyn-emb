@@ -164,16 +164,3 @@ Proof.
   eapply open_exprel_typed_weaken. apply Hee'.
   by apply le_permissive_join_l. auto.
 Qed.
-
-(* Lemma open_exprel_typed_compose L12 L23 Γ1 Γ2 Γ3 C12 C12' C23 C23' τ1 τ2 τ3 : *)
-(*   ctx_rel_typed L12 C12 C12' Γ1 τ1 Γ2 τ2 → *)
-(*   ctx_rel_typed L23 C23 C23' Γ2 τ2 Γ3 τ3 → *)
-(*   ctx_rel_typed (L23 ⊔ L12) (C23 ++ C12) (C23' ++ C12') Γ1 τ1 Γ3 τ3. *)
-(* Proof. *)
-(*   intros. intros L1' HL1 e e' Hee. *)
-(*   repeat rewrite /fill_ctx foldr_app. *)
-(*   repeat change (foldr fill_ctx_item ?e ?C) with (fill_ctx C e). *)
-(*   apply H0. { intros l l' Hll. apply HL1. by left. } *)
-(*   apply H. { intros l l' Hll. apply HL1. by right. } *)
-(*   auto. *)
-(* Qed. *)

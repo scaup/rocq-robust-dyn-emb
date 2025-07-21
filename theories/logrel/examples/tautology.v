@@ -6,7 +6,6 @@ From main.logrel Require Import definition.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
 
 Section tautology_example.
 
@@ -28,7 +27,7 @@ Section tautology_example.
     RecV (*n*) (*f*) (
      If ν (isZero (Var 0(*n*)))
      (* then *) (Lam (Var 0))
-     (* esle *) (Lam (*g*) (And ((Var 2(*r*)) (MinusOne (Var 1(*n*))) ((Var 0(*g*)) true))
+     (* else *) (Lam (*g*) (And ((Var 2(*r*)) (MinusOne (Var 1(*n*))) ((Var 0(*g*)) true))
                                 ((Var 2(*r*)) (MinusOne (Var 1(*n*))) ((Var 0(*g*)) false))))
       ).
   (* taut 0 g  =  g *)
@@ -110,7 +109,6 @@ Section tautology_example.
       iIntros (b b') "Hbb'". dvals b b'. iDestruct "Hbb'" as "<-".
       rfn_steps. destruct b; rfn_val.
   Qed.
-
 
   (* just as illustration; tautology function is well typed in coq *)
 

@@ -1,5 +1,5 @@
-From main Require Import imports.  (* prelude.autosubst. *)
-From main.dyn_lang Require Import definition.  (* lib. *)
+From main Require Import imports.
+From main.dyn_lang Require Import definition.
 From main.cast_calc Require Import types definition typing.
 
 (* The dynamic embedding, of the dynamic language into the gradual one. *)
@@ -59,8 +59,6 @@ Section dyn_emb.
     | dyn_lang.definition.Error ℓ => Cast ℓ (Base Bool) Unknown (Cast ℓ Unknown (Base Bool)
                                         (Cast ℓ (Base Unit) Unknown (Lit LitUnit)))
     end.
-
-  (* (at level 4, e at next level). *)
 
 End dyn_emb.
 

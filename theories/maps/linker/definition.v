@@ -2,14 +2,8 @@ From main.prelude Require Import imports labels.
 From main.cast_calc Require Import definition types typing contexts.
 From main.maps.linker.components Require Import common dyn grd.
 
-(* Notation gexpr := cast_calc.definition.expr. *)
-(* Notation dexpr := dyn_lang.definition.expr. *)
-(* Notation gVar := cast_calc.definition.Var. *)
-(* Notation gApp := cast_calc.definition.Var. *)
-
 Section linker.
 
-  (* todo; generalize to list of labels? *)
   Definition linker (ℓ : label) (Γ : list type) (τ : type) : ctx :=
      AppWithList_ctx (WrapVars ((fun τ => Cast ℓ τ Unknown) <$> Γ))
   ++ LamN_ctx (length Γ)

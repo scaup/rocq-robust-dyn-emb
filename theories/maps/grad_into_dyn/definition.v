@@ -64,10 +64,6 @@ Section contexts.
     | cast_calc.contexts.CTX_SeqL e2 => CTX_SeqL ν (trns e2)
     | cast_calc.contexts.CTX_SeqR e1 => CTX_SeqR ν (trns e1)
     | CTX_Cast ℓ τ1 τ2 => CTX_AppR ν (of_val $ cast' ℓ τ1 τ2)
-        (* (CTX_AppR ν $ match consistency_decision τ1 τ2 with *)
-        (*               | inl Pc => (of_val $ cast ℓ τ1 τ2 Pc) *)
-        (*               | inr _ => Lit LitUnit *)
-        (*               end) *)
     end.
 
   Definition trns_ctx (C : cast_calc.contexts.ctx) : ctx :=

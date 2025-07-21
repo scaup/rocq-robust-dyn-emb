@@ -1,10 +1,7 @@
 From main Require Import imports prelude.autosubst prelude.tactics.
 From main.cast_calc Require Import types.
-(* From main.cast_calc Require Import types typing. *)
-(* From main.cast_calc.dynamics Require Import std lemmas. *)
 Require Import main.cast_calc.cc.
 Require Import main.dyn_lang.dn.
-(* From main.dyn_lang Require Import definition casts lib lemmas tactics. *)
 Require Export main.maps.grad_into_dyn.definition.
 
 Section invariant.
@@ -44,11 +41,9 @@ Section invariant.
   | I_Pair e1 e1' (H1 : Invariant e1 e1')
       e2 e2' (H2 : Invariant e2 e2') :
       Invariant (cast_calc.definition.Pair e1 e2) (Pair e1' e2')
-  (* ..... *)
   (* for direct translation of cast *)
   | I_Cast ℓ τ1 τ2 e e' (H : Invariant e e') :
       Invariant (cc.Cast ℓ τ1 τ2 e) (App ν (of_val $ cast' ℓ τ1 τ2) e')
-  (* ..... *)
   (* for relating terminated stuff *)
   (* between arrows *)
   | I_Cast_Arrow_Arrow ℓ ℓ' τ1 τ2 τ3 τ4
@@ -67,7 +62,6 @@ Section invariant.
       e v (He : e = cc.of_val v) (HCe : Closed e) e' v' (He' : e' = of_val v') (HCe' : Closed e') (H : Invariant e e') :
       Invariant (cc.Cast ℓ Unknown (Bin Arrow Unknown Unknown) e)
         (Lam (App ℓ e' (Var 0)))
-  (* ..... *)
   (* relating errors *)
   | I_Error ℓ :
       Invariant (cast_calc.definition.Error ℓ) (Error ℓ).

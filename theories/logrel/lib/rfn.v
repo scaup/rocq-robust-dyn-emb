@@ -91,8 +91,6 @@ Section rfn.
   Instance rfn_proper : NonExpansive rfn.
   Proof. rewrite /rfn. intros n P P' dP L e e'. apply wp_proper. solve_proper. Qed.
 
-  (* Definition stable_spec (  ) *)
-
   Lemma rfn_impl_r {e e1} e2 Φ L
      (HΦ : ⊢ ∀ v, val_lift_r Φ v e2 -∗ val_lift_r Φ v e1)
      (HL : ∀ ℓ, lbl_lift_r L ℓ e2 → lbl_lift_r L ℓ e1)

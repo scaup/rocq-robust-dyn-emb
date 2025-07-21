@@ -8,8 +8,6 @@ From iris.proofmode Require Import tactics.
 
 Section superfluous_l.
 
-  (* wanna avoid proving termination *)
-
   Context {ν : label} {Hν : NeverOccurs ν}.
 
   Lemma open_exprel_superfluous_rtn_l L ℓ Γ e e' τ :

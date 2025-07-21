@@ -79,7 +79,6 @@ Section big_sepL3_lemmas.
     rewrite big_sepL3_alt_equiv /big_sepL3_alt. apply _.
   Qed.
 
-  (* TODO; clean up versions using alt version *)
   Lemma big_sepL3_lookup
       (Φ : A → B → C → siProp) l1 l2 l3 i x1 x2 x3 :
     l1 !! i = Some x1 → l2 !! i = Some x2 → l3 !! i = Some x3 →

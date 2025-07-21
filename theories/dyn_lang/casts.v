@@ -287,26 +287,3 @@ Section casts_alt.
   Qed.
 
 End casts_alt.
-
-(* From main.dyn_lang Require Import lemmas tactics. *)
-
-(* Section lemmas. *)
-
-(*   Context {ν : label} {Hν : NeverOccurs ν}. *)
-
-(*   Lemma rtc_step_ne_step e e' : rtc step_ne e e' → rtc step e e'. *)
-(*   Proof. induction 1. constructor. eapply rtc_l. by apply step_ne_step. auto. Qed. *)
-
-(*   Ltac take_step' := *)
-(*         (eapply rtc_l; first apply step_ne_step; first step_solver); asimpl. *)
-
-(*   Lemma error_faulty e ℓ : *)
-(*       faulty e ℓ → rtc step e (Error ℓ). *)
-(*   Proof. *)
-(*     intros. destruct H as (K & e_h & -> & [Hf | ->]). *)
-(*     - eapply (rtc_l _ _ (fill K (Error ℓ))). apply S_Normal. by apply H_error. *)
-(*       destruct K; econstructor; eauto. apply S_Error; auto. apply rtc_refl. *)
-(*     - destruct K; econstructor; eauto. apply S_Error; auto. apply rtc_refl. *)
-(*   Qed. *)
-
-(* End lemmas. *)

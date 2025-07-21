@@ -115,7 +115,7 @@ Section fundamental.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
     - simpl. asimpl. rfn_steps. rfn_val. rewrite valrel_unknown_unfold. destruct b; eauto.
-      (* let's fix later *) Unshelve. exact (fun _ => Lit LitUnit).
+      Unshelve. exact (fun _ => Lit LitUnit).
     - asimpl.
       rfn_bind.
       iApply (IHe1 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
@@ -216,7 +216,7 @@ Section fundamental.
     generalize dependent n.
     induction e; iIntros (n Hn Δ HΔ vs vs') "#Hvsvs'".
     - simpl. rfn_steps. rfn_val. rewrite valrel_unknown_unfold. destruct b; eauto.
-      (* let's fix later *) Unshelve. exact (fun _ => Lit LitUnit).
+      Unshelve. exact (fun _ => Lit LitUnit).
     - asimpl.
       rfn_bind.
       iApply (IHe1 n ltac:(closed_solver) Δ ltac:(permissive_solver) with "Hvsvs'").
@@ -310,10 +310,6 @@ Section fundamental.
     - asimpl. rfn_steps. iApply (rfn_faulty); try by faulty_solver. eexists [], _; eauto.
       apply HΔ; split; set_solver.
   Qed.
-
-
-  (* alternatively; we can define logrel at Γ such that arbitrary substitution larger... *)
-  (* or just enforce closedness in logrel; might be more natural.. *)
 
   Lemma dyn_emb_trns_pres_closed_n e n : Closed_n n e → Closed_n n (⟨ (⌈⌈ e ⌉⌉) ⟩).
   Proof.

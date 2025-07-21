@@ -14,8 +14,6 @@ Section lib.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
 
-  (* Global Instance asdf : NeverOccurs ν := _. *)
-
   Definition LetIn (e1 e2 : expr) : expr :=
     AppAn (Lam e2) e1.
 
@@ -81,9 +79,6 @@ Section lib.
                                   (InjL (Var 0))
                                   (InjR (Var 0)))
                   | Product => LamV (Pair (Fst ℓ (Var 0)) (Snd ℓ (Var 0)))
-                  (* | Product => LamV (LetIn (Fst ℓ (Var 0)) *)
-                  (*                     (LetIn (Snd ℓ (Var 1)) *)
-                  (*                        (Pair (Var 1) (Var 0)))) *)
                   end
     end.
 

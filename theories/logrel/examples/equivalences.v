@@ -6,7 +6,6 @@ From main.logrel Require Import definition.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
 
 Section examples.
 

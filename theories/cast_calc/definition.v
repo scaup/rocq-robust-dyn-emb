@@ -21,11 +21,6 @@ Inductive expr :=
   | Snd (e : expr)
   | Pair (e1 e2 : expr)
   (* error *)
-  (* | Error (ℓ : label) *)
-  (* Easier if we have source type, then translation is easier *)
-  (* Also a proof of consistency? *)
-  (* | Cast (τ1 τ2 : type) (e : expr) *)
   (* We want translation from surface to cast calculus to be definable without typing derivation... *)
   | Cast (ℓ : label) (τ1 τ2 : type) (e : expr)
   | Error (ℓ : label).
-  (* | Ascribe (ℓ : label) (τ1 τ2 : type) (e : expr). *)

@@ -6,7 +6,6 @@ From main.logrel Require Import definition.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
 
 Section recursion.
 
@@ -56,15 +55,6 @@ Section recursion.
     rewrite FixArrow_subst. asimpl.
     constructor.
   Qed.
-
-  (* this does not work sadly *)
-  (* Global Opaque Rec. *)
-  (* Global Opaque RecV. *)
-
-  (* Definition Rec_aux : seal Rec. Proof. by eexists. Qed. *)
-  (* Definition Rec' := Rec_aux.(unseal). *)
-  (* Lemma Rec_unseal : Rec = Rec'. *)
-  (* Proof. by rewrite -Rec_aux.(seal_eq) /=. Qed. *)
 
   Definition RecV_aux : seal RecV'. Proof. by eexists. Qed.
   Definition RecV := RecV_aux.(unseal).

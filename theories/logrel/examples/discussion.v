@@ -6,15 +6,10 @@ From main.logrel Require Import definition examples.help.
 
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
-(* From iris.proofmode Require Import base proofmode classes. *)
 
 Section example_disc.
 
   Context {ν : label} {Hν : NeverOccurs ν}.
-
-  (* Context (Omega : expr). *)
-  (* Context (Omega_closed : Closed Omega). *)
-  (* Context (Omega_step : step_ne Omega Omega). *)
 
   Definition Omega : expr :=
     App ν (Lam (App ν (Var 0) (Var 0))) (Lam (App ν (Var 0) (Var 0))).

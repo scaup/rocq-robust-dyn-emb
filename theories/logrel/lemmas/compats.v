@@ -41,15 +41,10 @@ Lemma compat_pair (Γ : list type) (L1 L2 : LabelRel) e1 e1' e2 e2' τ1 τ2
   (H1 : open_exprel_typed Γ L1 e1 e1' τ1)
   (H2 : open_exprel_typed Γ L2 e2 e2' τ2) :
   open_exprel_typed Γ (L1 ⊔ L2) (Pair e1 e2) (Pair e1' e2') (Bin Product τ1 τ2).
-(* Lemma compat_pair (Γ : list type) (L1 L2 L : LabelRel) (HL : le_permissive (disj L1 L2) L) e1 e1' e2 e2' τ1 τ2 *)
-(*   (H1 : open_exprel_typed Γ L1 e1 e1' τ1) *)
-(*   (H2 : open_exprel_typed Γ L2 e2 e2' τ2) : *)
-(*   open_exprel_typed Γ L (Pair e1 e2) (Pair e1' e2') (Bin Product τ1 τ2). *)
 Proof.
   iIntros (Δ HΔ vs vs') "#Hvsvs'".
   rfn_bind. iApply H1; auto.
   eapply le_permissive_trans'; eauto. eapply le_permissive_join_l.
-  (* eapply le_permissive_trans'; eauto. eapply le_permissive_trans'; eauto. eapply le_permissive_join_l. *)
   iIntros (v1 v1') "#Hvv1'".
   rfn_bind. iApply H2; auto.
   eapply le_permissive_trans'; eauto. eapply le_permissive_join_r.

@@ -35,6 +35,7 @@ Section robust_dyn_emb_criterion.
   (* ------------------- *)
 
   Context {ν : label} {Hν : NeverOccurs ν}.
+  (* Note; NeverOccurs ν is just trivial predicate; so ν can be anything *)
 
   Notation cc_Error := cast_calc.definition.Error.
 
@@ -60,10 +61,6 @@ Section robust_dyn_emb_criterion.
 
   Definition import ℓ Γ τ (e : dexpr) : gexpr :=
      gfill_ctx (linker ℓ Γ τ) ⌈⌈ e ⌉⌉.
-
- (* Theorem cl_dyn_emb_linker ℓ Γ P (e : dexpr) (H : Closed_n (length Γ) e) τ *)
- (*    (Hee' : open_exprel_typed Γ (diagonal P) e e τ) : *)
- (*    open_exprel_typed_cl Γ P ⟨(import ℓ Γ τ e)⟩ e τ. *)
 
   (* lla contextual refinement casted dynamic embedding of arbitrary e *)
   Lemma lla_ctx_rfn_cast_embd_arb_e ℓ Γ e (H : Closed_n (length Γ) e) τ :
@@ -93,7 +90,6 @@ Section robust_dyn_emb_criterion.
       apply linker_superfluous_l; auto.
   Qed.
 
-
   Theorem robust_dyn_emb_criterion Γ (e : dexpr) (H : Closed_n (length Γ) e) τ
     (He : sem_typed Γ e τ) κ : robust Γ (import κ Γ τ e) τ.
   Proof.
@@ -110,10 +106,7 @@ Section robust_dyn_emb_criterion.
 
   Print Assumptions robust_dyn_emb_criterion.
 
-  (* Note; NeverOccurs ν is just trivial predicate; so ν can be anything *)
-
-
-  (* Other stuff *)
+  (* Other properties *)
   (* ------------------- *)
 
   Lemma rel_ctx_fill_expr {L} (Le Lc : LabelRel) {Γ τ Γ' τ' e e' C C'}

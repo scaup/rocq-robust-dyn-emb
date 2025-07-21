@@ -3,8 +3,6 @@ From main.cast_calc Require Import types definition typing labels contexts.
 From main.dyn_lang Require Import definition lemmas tactics lib casts contexts.
 From main.logrel.lib Require Import weakestpre rfn small_helpers.
 
-(* From main.logrel.lemmas Require Import casts_compat. *)
-
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
 

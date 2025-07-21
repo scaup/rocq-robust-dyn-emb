@@ -12,9 +12,6 @@ Reserved Notation "Γ ⊢ e : τ" (at level 74, e, τ at next level).
 Inductive typed (Γ : list type) : expr → type → Prop :=
  | Var_typed x τ : Γ !! x = Some τ → Γ ⊢ Var x : τ
  | Base_typed b : Γ ⊢ Lit b : base_lit_type b
- (* | Unit_typed : Γ ⊢ Lit (LitUnit) : Base Unit *)
- (* | Bool_typed b : Γ ⊢ Lit (LitBool b) : Base Bool *)
- (* | Int_typed z : Γ ⊢ Lit (LitInt z) : Base Int *)
  | Seq_typed e1 e2 τ :
      Γ ⊢ e1 : Base Unit → Γ ⊢ e2 : τ → Γ ⊢ Seq e1 e2 : τ
  | If_typed e0 e1 e2 τ :

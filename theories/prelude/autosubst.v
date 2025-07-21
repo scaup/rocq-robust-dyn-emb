@@ -10,8 +10,6 @@ Section Autosubst_Lemmas.
   Definition Closed_n (n : nat) (t : term) : Prop := ∀ σ, t.[upn n σ] = t.
   Definition Closed : term → Prop := Closed_n 0.
 
-  (* TODO clean up *)
-
   Lemma iter_up (m x : nat) (f : var → term) :
     upn m f x = if lt_dec x m then ids x else rename (+m) (f (x - m)).
   Proof.
@@ -102,16 +100,6 @@ Section Autosubst_Lemmas.
     | v :: vs' => v .: subst_list vs'
     end.
 
-  (* Lemma simul_subst_closed (s t1 t2 : term) (Ct1 : Closed t1) (Ct2 : Closed t2) : s.[t1/].[t2/] = s.[t1,t2/]. *)
-  (* Proof. asimpl. by rewrite Ct1. Qed. *)
-
-  (* Lemma scomp_closed_term (t : term) (Ct : Closed t) σ : t .: σ = t .: ids >> σ. *)
-  (* Proof. *)
-  (*   f_ext. intro x. induction x. *)
-  (*   - by simpl. *)
-  (*   - by asimpl. *)
-  (* Qed. *)
-
   Lemma subst_list_app vs vs' : subst_list (vs ++ vs') = (upn (length vs) (subst_list vs')) >> (subst_list vs).
   Proof.
     induction vs.
@@ -160,40 +148,4 @@ Section Autosubst_Lemmas.
       intros H. simpl in H. asimpl. by rewrite IHes.
   Qed.
 
-  (* TODO FIX; we don't need INJ *)
-
-  (* Lemma subst_list_default_rw es n : subst_list es n = default (ids (n - length es)) (es !! n). *)
-  (* Proof. *)
-  (*   generalize dependent n. *)
-  (*   induction es. *)
-  (*   - intros. asimpl. rewrite lookup_nil /=. f_equiv. lia. *)
-  (*   - intros n. asimpl. destruct n; auto. *)
-  (*     rewrite lookup_cons. asimpl. by rewrite IHes. *)
-  (* Qed. *)
-
 End Autosubst_Lemmas.
-
-
-  (* Definition subst_list_val (vs : list term) : var → term := subst_list (map of_val vs). *)
-
-
-  (* Lemma subst_list_val_cons v vs : of_val v .: subst_list_val vs = subst_list_val (v :: vs). *)
-  (* Proof. intros. by asimpl. Qed. *)
-
-  (* (* Lemma var_subst_list_val_lt_length (vs : list val) (x : var) (p : x < length vs) : *) *)
-  (* (*   (exists v : val, vs !! x = Some v ∧ (Var x).[subst_list_val vs] = v). *) *)
-  (* (* Proof. *) *)
-  (* (*   destruct (vs !! x) eqn:eq. exists v. split; auto. apply ids_subst_list_lookup. by rewrite list_lookup_fmap eq /=. *) *)
-  (* (*   assert (length vs ≤ x). by apply lookup_ge_None. lia. *) *)
-  (* (* Qed. *) *)
-  (* Lemma Var_subst_list_closed_n_length (vs : list val) (x : var) (p : Closed_n (length vs) (Var x)) : *)
-  (*   (exists v : val, vs !! x = Some v ∧ (Var x).[subst_list_val vs] = v). *)
-  (* Proof. *)
-  (*   destruct (vs !! x) eqn:eq. exists v. split; auto. apply ids_subst_list_lookup. by rewrite list_lookup_fmap eq /=. *)
-  (*   assert (length vs ≤ x). by apply lookup_ge_None. *)
-  (*   assert (x < length vs). by apply ids_lt_Closed_n. lia. *)
-  (* Qed. *)
-
-  (* Lemma Var_subst_list_val_lookup (x : var) (ts : list val) t (H : ts !! x = Some t) : *)
-  (*   (ids x).[subst_list_val ts] = t. *)
-  (* Proof. rewrite /subst_list_val. apply ids_subst_list_lookup. by rewrite list_lookup_fmap H. Qed. *)

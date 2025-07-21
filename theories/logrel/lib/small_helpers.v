@@ -4,13 +4,6 @@ From main.logrel.lib Require Import rfn weakestpre.
 From iris.si_logic Require Export bi.
 From iris.proofmode Require Import tactics.
 
-(* Some wrappers for step_solver and faulty_solver tactics *)
-
-(* Ltac rfn_bind H := rw_fill; iApply (rfn_bind' with H); simpl. *)
-(* Ltac rfn_bind' := rw_fill; iApply (rfn_bind'); simpl. *)
-(* Ltac rfn_bind_pop H := rw_fill_popped; iApply (rfn_bind' with H); simpl. *)
-(* Ltac rfn_bind_pop' := rw_fill_popped; iApply rfn_bind'; simpl. *)
-
 Ltac rfn_l_s := iApply rfn_s_l; first by step_solver.
 Ltac rfn_r_s := iApply rfn_s_r; first by step_solver.
 
@@ -20,8 +13,6 @@ Ltac rfn_steps :=
 Ltac rfn_val := rw_of_val; iApply rfn_val; eauto.
 
 Ltac dvals v v' := destruct v, v'; repeat (lazymatch goal with | x : base_lit |- _ => destruct x end); auto.
-
-(* Ltac rfn_faulty := by (iApply (rfn_faulty _ _ with "Hp"); faulty_solver). *)
 
 Ltac rfn_faulty := (iApply rfn_faulty; [ by faulty_solver| by faulty_solver | auto; by delta_solver ]).
 
@@ -48,7 +39,6 @@ Lemma rfn_bindK {K K' t t' e e' Ψ Φ L} :
   ⊢ rfn Ψ L e e' -∗ (∀ v v', Ψ v v' -∗ rfn Φ L (fill K (of_val v)) (fill K' (of_val v'))) -∗ rfn Φ L t t'.
 Proof. intros. simplify_eq. iApply rfn_bind'. Qed.
 
-(* "bind pop left" *)
 Ltac rfn_bind_pr :=
   iApply rfn_bindK; [ simpl; by rw_fill; eauto | simpl; by rw_fill_popped; eauto | simpl | simpl ].
 

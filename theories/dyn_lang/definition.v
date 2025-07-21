@@ -136,8 +136,6 @@ Inductive head_step_ne : expr → expr → Prop :=
     to_val ea = Some va →
     head_step_ne (App ℓ (Lam eb) ea) (eb.[ea/]).
 
-(* Inductive shape := S_Unit | S_Bool | S_Int | S_Inj | S_Pair | S_Lam. *)
-
 Definition shape_val (v : val) : shape :=
  match v with
  | LitV b => match b with
